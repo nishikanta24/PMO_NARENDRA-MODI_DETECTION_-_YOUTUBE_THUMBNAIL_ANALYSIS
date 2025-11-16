@@ -1,0 +1,2256 @@
+::: {#9a3b96d2 .cell .code execution_count="1"}
+``` python
+import pandas as pd
+df=pd.read_csv(r'efficinetnet_resnet50_convexnet_randomforrest_prediction_sheet.csv')
+```
+:::
+
+:::: {#520651f5 .cell .code execution_count="2"}
+``` python
+df.info()
+```
+
+::: {.output .stream .stdout}
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 84585 entries, 0 to 84584
+    Data columns (total 45 columns):
+     #   Column                        Non-Null Count  Dtype  
+    ---  ------                        --------------  -----  
+     0   video_id                      83471 non-null  object 
+     1   kaggle_standard_filename      84585 non-null  object 
+     2   upload_date                   84585 non-null  object 
+     3   view_count                    84585 non-null  int64  
+     4   like_count                    84585 non-null  int64  
+     5   comment_count                 84585 non-null  int64  
+     6   duration                      84585 non-null  object 
+     7   duration_seconds              84585 non-null  int64  
+     8   category_id                   84585 non-null  int64  
+     9   video_url                     84585 non-null  object 
+     10  thumbnail_url_medium          84585 non-null  object 
+     11  channel                       84585 non-null  object 
+     12  source_csv                    84585 non-null  object 
+     13  thumbnail_url_high            84585 non-null  object 
+     14  thumbnail_filename            84585 non-null  object 
+     15  local_thumbnail_path          84585 non-null  object 
+     16  channel_name                  84585 non-null  object 
+     17  download_status               84585 non-null  object 
+     18  image_exists                  84585 non-null  bool   
+     19  local_thumbnail_exists        84585 non-null  bool   
+     20  phase1_predicted_class        84585 non-null  int64  
+     21  phase1_confidence_score       84585 non-null  float64
+     22  phase1_predicted_label        84585 non-null  object 
+     23  phase2_predicted_class        84585 non-null  int64  
+     24  phase2_confidence_score       84585 non-null  float64
+     25  phase2_predicted_label        84585 non-null  object 
+     26  title                         84585 non-null  object 
+     27  tags                          73127 non-null  object 
+     28  description                   83606 non-null  object 
+     29  download_error                0 non-null      float64
+     30  updated_thumbnail_path        84585 non-null  object 
+     31  consolidated_path             84585 non-null  object 
+     32  consolidated_filename         84585 non-null  object 
+     33  efficientnet_prediction       84585 non-null  int64  
+     34  efficientnet_confidencescore  84585 non-null  float64
+     35  resnet50_prediction           84585 non-null  int64  
+     36  resnet50_confidencescore      84585 non-null  float64
+     37  avg_confidencescore           84585 non-null  float64
+     38  ConvNext_Phase2_Prediction    84585 non-null  int64  
+     39  ConvNext_Phase2_Confidence    84585 non-null  float64
+     40  ConvNext_Phase3_Prediction    84585 non-null  int64  
+     41  ConvNext_Phase3_Confidence    84585 non-null  float64
+     42  ensemble_prediction           84585 non-null  int64  
+     43  ensemble_confidence_modi      84585 non-null  float64
+     44  ensemble_confidence_negative  84585 non-null  float64
+    dtypes: bool(2), float64(10), int64(12), object(21)
+    memory usage: 27.9+ MB
+:::
+::::
+
+:::: {#9ef0cd86 .cell .code execution_count="3"}
+``` python
+df1 = df.drop(columns=[
+    'phase1_predicted_class',
+    'phase1_confidence_score',
+    'phase1_predicted_label',
+    'phase2_predicted_class',
+    'phase2_confidence_score',
+    'phase2_predicted_label',
+    'download_error',
+    'updated_thumbnail_path',
+    'consolidated_path',
+    'consolidated_filename',
+    'efficientnet_prediction',
+    'efficientnet_confidencescore',
+    'resnet50_prediction',
+    'resnet50_confidencescore',
+    'avg_confidencescore',
+    'ConvNext_Phase2_Prediction',
+    'ConvNext_Phase2_Confidence',
+    'ConvNext_Phase3_Prediction',
+    'ConvNext_Phase3_Confidence',
+    'download_status',
+    'image_exists',
+    'local_thumbnail_exists',
+    'thumbnail_url_high',
+    'thumbnail_filename',
+    'local_thumbnail_path',
+    'source_csv'
+])
+df1.info()
+```
+
+::: {.output .stream .stdout}
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 84585 entries, 0 to 84584
+    Data columns (total 19 columns):
+     #   Column                        Non-Null Count  Dtype  
+    ---  ------                        --------------  -----  
+     0   video_id                      83471 non-null  object 
+     1   kaggle_standard_filename      84585 non-null  object 
+     2   upload_date                   84585 non-null  object 
+     3   view_count                    84585 non-null  int64  
+     4   like_count                    84585 non-null  int64  
+     5   comment_count                 84585 non-null  int64  
+     6   duration                      84585 non-null  object 
+     7   duration_seconds              84585 non-null  int64  
+     8   category_id                   84585 non-null  int64  
+     9   video_url                     84585 non-null  object 
+     10  thumbnail_url_medium          84585 non-null  object 
+     11  channel                       84585 non-null  object 
+     12  channel_name                  84585 non-null  object 
+     13  title                         84585 non-null  object 
+     14  tags                          73127 non-null  object 
+     15  description                   83606 non-null  object 
+     16  ensemble_prediction           84585 non-null  int64  
+     17  ensemble_confidence_modi      84585 non-null  float64
+     18  ensemble_confidence_negative  84585 non-null  float64
+    dtypes: float64(2), int64(6), object(11)
+    memory usage: 12.3+ MB
+:::
+::::
+
+:::: {#2ad11ecf .cell .code execution_count="11"}
+``` python
+print(df1.columns)
+print(df.head())
+```
+
+::: {.output .stream .stdout}
+    Index(['video_id', 'kaggle_standard_filename', 'upload_date', 'view_count',
+           'like_count', 'comment_count', 'duration', 'duration_seconds',
+           'category_id', 'video_url', 'thumbnail_url_medium', 'channel',
+           'channel_name', 'title', 'tags', 'description', 'ensemble_prediction',
+           'ensemble_confidence_modi', 'ensemble_confidence_negative'],
+          dtype='object')
+          video_id                           kaggle_standard_filename upload_date  \
+    0  7Lmzw7UC-vI  2025-09-28_ISRAEL ATTACKS TANKER WITH 24 PAKIS...  2025-09-28   
+    1  MxUSGpoxUqs  2025-09-28_USA MUST FIX INDIA _ HUGE STATEMENT...  2025-09-28   
+    2  1FXyJHBNr8c  2025-09-28_The Highest Paying Job in the World...  2025-09-28   
+    3  sWdNCNeBjoY  2025-09-27_India Confirms NATURAL GAS Discover...  2025-09-27   
+    4  KWSaVKA6McU  2025-09-27_INSANE SCENES FROM UN Netanyahu Did...  2025-09-27   
+
+       view_count  like_count  comment_count  duration  duration_seconds  \
+    0      784350       48977           4142  11:16:00               676   
+    1      777642       44284           5800  10:14:00               614   
+    2        5097         146             14  19:57:00              1197   
+    3      730842       44674           4070  10:11:00               611   
+    4      937046       59654           6862  12:12:00               732   
+
+       category_id                                    video_url  ...  \
+    0           27  https://www.youtube.com/watch?v=7Lmzw7UC-vI  ...   
+    1           27  https://www.youtube.com/watch?v=MxUSGpoxUqs  ...   
+    2           27  https://www.youtube.com/watch?v=1FXyJHBNr8c  ...   
+    3           27  https://www.youtube.com/watch?v=sWdNCNeBjoY  ...   
+    4           27  https://www.youtube.com/watch?v=KWSaVKA6McU  ...   
+
+      resnet50_prediction resnet50_confidencescore avg_confidencescore  \
+    0                   1                 0.771757            0.775498   
+    1                   0                 0.999991            0.991699   
+    2                   1                 0.999918            0.975210   
+    3                   1                 0.977392            0.811480   
+    4                   1                 0.998952            0.993711   
+
+      ConvNext_Phase2_Prediction ConvNext_Phase2_Confidence  \
+    0                          1                   0.952259   
+    1                          0                   1.000000   
+    2                          1                   0.995075   
+    3                          0                   0.999998   
+    4                          1                   0.999993   
+
+      ConvNext_Phase3_Prediction ConvNext_Phase3_Confidence ensemble_prediction  \
+    0                          0                   0.508397                   1   
+    1                          0                   0.998695                   0   
+    2                          1                   0.907580                   1   
+    3                          0                   0.870776                   0   
+    4                          1                   0.986441                   1   
+
+       ensemble_confidence_modi  ensemble_confidence_negative  
+    0                  0.394974                      0.605026  
+    1                  0.927479                      0.072521  
+    2                  0.004779                      0.995221  
+    3                  0.851277                      0.148723  
+    4                  0.008179                      0.991821  
+
+    [5 rows x 45 columns]
+:::
+::::
+
+:::: {#17477a36 .cell .code execution_count="6"}
+``` python
+import pandas as pd
+from io import StringIO
+
+data = """region	election_type	year	start_date	end_date	months	source
+India	general	2014	07-04-2014	12-05-2014	Apr-2014, May-2014	https://en.wikipedia.org/wiki/2014_Indian_general_election
+India	general	2019	11-04-2019	19-05-2019	Apr-2019, May-2019	https://en.wikipedia.org/wiki/2019_Indian_general_election
+India	general	2024	19-04-2024	01-06-2024	Apr-2024, May-2024, Jun-2024	https://en.wikipedia.org/wiki/2024_Indian_general_election
+Andhra Pradesh	state	2014	30-04-2014	07-05-2014	Apr-2014, May-2014	https://en.wikipedia.org/wiki/2014_Andhra_Pradesh_Legislative_Assembly_election
+Andhra Pradesh	state	2019	11-04-2019	11-04-2019	Apr-2019	https://en.wikipedia.org/wiki/2019_Andhra_Pradesh_Legislative_Assembly_election
+Andhra Pradesh	state	2024	13-05-2024	13-05-2024	May-2024	https://en.wikipedia.org/wiki/2024_Andhra_Pradesh_Legislative_Assembly_election
+Arunachal Pradesh	state	2014	09-04-2014	09-04-2014	Apr-2014	https://en.wikipedia.org/wiki/2014_Arunachal_Pradesh_Legislative_Assembly_election
+Arunachal Pradesh	state	2019	11-04-2019	11-04-2019	Apr-2019	https://en.wikipedia.org/wiki/2019_Arunachal_Pradesh_Legislative_Assembly_election
+Arunachal Pradesh	state	2024	19-04-2024	19-04-2024	Apr-2024	https://en.wikipedia.org/wiki/2024_Arunachal_Pradesh_Legislative_Assembly_election
+Assam	state	2016	04-04-2016	11-04-2016	Apr-2016	https://en.wikipedia.org/wiki/2016_Assam_Legislative_Assembly_election
+Assam	state	2021	27-03-2021	06-04-2021	Mar-2021, Apr-2021	https://en.wikipedia.org/wiki/2021_Assam_Legislative_Assembly_election
+Bihar	state	2015	12-10-2015	05-11-2015	Oct-2015, Nov-2015	https://en.wikipedia.org/wiki/2015_Bihar_Legislative_Assembly_election
+Bihar	state	2020	28-10-2020	07-11-2020	Oct-2020, Nov-2020	https://en.wikipedia.org/wiki/2020_Bihar_Legislative_Assembly_election
+Bihar	state	2025	01-10-2025	31-10-2025	Oct-2025	https://en.wikipedia.org/wiki/Bihar_Legislative_Assembly_election
+Chhattisgarh	state	2018	12-11-2018	20-11-2018	Nov-2018	https://en.wikipedia.org/wiki/2018_Chhattisgarh_Legislative_Assembly_election
+Chhattisgarh	state	2023	07-11-2023	17-11-2023	Nov-2023	https://en.wikipedia.org/wiki/2023_Chhattisgarh_Legislative_Assembly_election
+Goa	state	2017	04-02-2017	04-02-2017	Feb-2017	https://en.wikipedia.org/wiki/2017_Goa_Legislative_Assembly_election
+Goa	state	2022	14-02-2022	14-02-2022	Feb-2022	https://en.wikipedia.org/wiki/2022_Goa_Legislative_Assembly_election
+Gujarat	state	2017	09-12-2017	14-12-2017	Dec-2017	https://en.wikipedia.org/wiki/2017_Gujarat_Legislative_Assembly_election
+Gujarat	state	2022	01-12-2022	05-12-2022	Dec-2022	https://en.wikipedia.org/wiki/2022_Gujarat_Legislative_Assembly_election
+Haryana	state	2014	15-10-2014	15-10-2014	Oct-2014	https://en.wikipedia.org/wiki/2014_Haryana_Legislative_Assembly_election
+Haryana	state	2019	21-10-2019	21-10-2019	Oct-2019	https://en.wikipedia.org/wiki/2019_Haryana_Legislative_Assembly_election
+Himachal Pradesh	state	2017	09-11-2017	09-11-2017	Nov-2017	https://en.wikipedia.org/wiki/2017_Himachal_Pradesh_Legislative_Assembly_election
+Himachal Pradesh	state	2022	12-11-2022	12-11-2022	Nov-2022	https://en.wikipedia.org/wiki/2022_Himachal_Pradesh_Legislative_Assembly_election
+Jharkhand	state	2014	25-11-2014	20-12-2014	Nov-2014, Dec-2014	https://en.wikipedia.org/wiki/2014_Jharkhand_Legislative_Assembly_election
+Jharkhand	state	2019	30-11-2019	20-12-2019	Nov-2019, Dec-2019	https://en.wikipedia.org/wiki/2019_Jharkhand_Legislative_Assembly_election
+Karnataka	state	2018	12-05-2018	12-05-2018	May-2018	https://en.wikipedia.org/wiki/2018_Karnataka_Legislative_Assembly_election
+Karnataka	state	2023	10-05-2023	10-05-2023	May-2023	https://en.wikipedia.org/wiki/2023_Karnataka_Legislative_Assembly_election
+Kerala	state	2016	16-05-2016	16-05-2016	May-2016	https://en.wikipedia.org/wiki/2016_Kerala_Legislative_Assembly_election
+Kerala	state	2021	06-04-2021	06-04-2021	Apr-2021	https://en.wikipedia.org/wiki/2021_Kerala_Legislative_Assembly_election
+Madhya Pradesh	state	2018	28-11-2018	28-11-2018	Nov-2018	https://en.wikipedia.org/wiki/2018_Madhya_Pradesh_Legislative_Assembly_election
+Madhya Pradesh	state	2023	17-11-2023	17-11-2023	Nov-2023	https://en.wikipedia.org/wiki/2023_Madhya_Pradesh_Legislative_Assembly_election
+Maharashtra	state	2014	15-10-2014	15-10-2014	Oct-2014	https://en.wikipedia.org/wiki/2014_Maharashtra_Legislative_Assembly_election
+Maharashtra	state	2019	21-10-2019	21-10-2019	Oct-2019	https://en.wikipedia.org/wiki/2019_Maharashtra_Legislative_Assembly_election
+Manipur	state	2017	04-03-2017	08-03-2017	Mar-2017	https://en.wikipedia.org/wiki/2017_Manipur_Legislative_Assembly_election
+Manipur	state	2022	28-02-2022	05-03-2022	Feb-2022, Mar-2022	https://en.wikipedia.org/wiki/2022_Manipur_Legislative_Assembly_election
+Meghalaya	state	2018	27-02-2018	27-02-2018	Feb-2018	https://en.wikipedia.org/wiki/2018_Meghalaya_Legislative_Assembly_election
+Meghalaya	state	2023	27-02-2023	27-02-2023	Feb-2023	https://en.wikipedia.org/wiki/2023_Meghalaya_Legislative_Assembly_election
+Mizoram	state	2018	28-11-2018	28-11-2018	Nov-2018	https://en.wikipedia.org/wiki/2018_Mizoram_Legislative_Assembly_election
+Mizoram	state	2023	07-11-2023	07-11-2023	Nov-2023	https://en.wikipedia.org/wiki/2023_Mizoram_Legislative_Assembly_election
+Nagaland	state	2018	27-02-2018	27-02-2018	Feb-2018	https://en.wikipedia.org/wiki/2018_Nagaland_Legislative_Assembly_election
+Nagaland	state	2023	27-02-2023	27-02-2023	Feb-2023	https://en.wikipedia.org/wiki/2023_Nagaland_Legislative_Assembly_election
+Odisha	state	2014	10-04-2014	17-04-2014	Apr-2014	https://en.wikipedia.org/wiki/2014_Odisha_Legislative_Assembly_election
+Odisha	state	2019	11-04-2019	29-04-2019	Apr-2019	https://en.wikipedia.org/wiki/2019_Odisha_Legislative_Assembly_election
+Odisha	state	2024	13-05-2024	01-06-2024	May-2024, Jun-2024	https://en.wikipedia.org/wiki/2024_Odisha_Legislative_Assembly_election
+Punjab	state	2017	04-02-2017	04-02-2017	Feb-2017	https://en.wikipedia.org/wiki/2017_Punjab_Legislative_Assembly_election
+Punjab	state	2022	20-02-2022	20-02-2022	Feb-2022	https://en.wikipedia.org/wiki/2022_Punjab_Legislative_Assembly_election
+Rajasthan	state	2018	07-12-2018	07-12-2018	Dec-2018	https://en.wikipedia.org/wiki/2018_Rajasthan_Legislative_Assembly_election
+Rajasthan	state	2023	25-11-2023	25-11-2023	Nov-2023	https://en.wikipedia.org/wiki/2023_Rajasthan_Legislative_Assembly_election
+Sikkim	state	2014	12-04-2014	12-04-2014	Apr-2014	https://en.wikipedia.org/wiki/2014_Sikkim_Legislative_Assembly_election
+Sikkim	state	2019	11-04-2019	11-04-2019	Apr-2019	https://en.wikipedia.org/wiki/2019_Sikkim_Legislative_Assembly_election
+Sikkim	state	2024	19-04-2024	19-04-2024	Apr-2024	https://en.wikipedia.org/wiki/2024_Sikkim_Legislative_Assembly_election
+Tamil Nadu	state	2016	16-05-2016	16-05-2016	May-2016	https://en.wikipedia.org/wiki/2016_Tamil_Nadu_Legislative_Assembly_election
+Tamil Nadu	state	2021	06-04-2021	06-04-2021	Apr-2021	https://en.wikipedia.org/wiki/2021_Tamil_Nadu_Legislative_Assembly_election
+Telangana	state	2014	30-04-2014	07-05-2014	Apr-2014, May-2014	https://en.wikipedia.org/wiki/2014_Andhra_Pradesh_Legislative_Assembly_election#Telangana
+Telangana	state	2018	07-12-2018	07-12-2018	Dec-2018	https://en.wikipedia.org/wiki/2018_Telangana_Legislative_Assembly_election
+Telangana	state	2023	30-11-2023	30-11-2023	Nov-2023	https://en.wikipedia.org/wiki/2023_Telangana_Legislative_Assembly_election
+Tripura	state	2018	18-02-2018	18-02-2018	Feb-2018	https://en.wikipedia.org/wiki/2018_Tripura_Legislative_Assembly_election
+Tripura	state	2023	16-02-2023	16-02-2023	Feb-2023	https://en.wikipedia.org/wiki/2023_Tripura_Legislative_Assembly_election
+Uttar Pradesh	state	2017	11-02-2017	08-03-2017	Feb-2017, Mar-2017	https://en.wikipedia.org/wiki/2017_Uttar_Pradesh_Legislative_Assembly_election
+Uttar Pradesh	state	2022	10-02-2022	07-03-2022	Feb-2022, Mar-2022	https://en.wikipedia.org/wiki/2022_Uttar_Pradesh_Legislative_Assembly_election
+Uttarakhand	state	2017	15-02-2017	15-02-2017	Feb-2017	https://en.wikipedia.org/wiki/2017_Uttarakhand_Legislative_Assembly_election
+Uttarakhand	state	2022	14-02-2022	14-02-2022	Feb-2022	https://en.wikipedia.org/wiki/2022_Uttarakhand_Legislative_Assembly_election
+West Bengal	state	2016	04-04-2016	05-05-2016	Apr-2016, May-2016	https://en.wikipedia.org/wiki/2016_West_Bengal_Legislative_Assembly_election
+West Bengal	state	2021	27-03-2021	29-04-2021	Mar-2021, Apr-2021	https://en.wikipedia.org/wiki/2021_West_Bengal_Legislative_Assembly_election
+Delhi	state	2015	07-02-2015	07-02-2015	Feb-2015	https://en.wikipedia.org/wiki/2015_Delhi_Legislative_Assembly_election
+Delhi	state	2020	08-02-2020	08-02-2020	Feb-2020	https://en.wikipedia.org/wiki/2020_Delhi_Legislative_Assembly_election
+Delhi	state	2025	08-02-2025	08-02-2025	Feb-2025	https://en.wikipedia.org/wiki/Delhi_Legislative_Assembly_election
+Puducherry	state	2016	16-05-2016	16-05-2016	May-2016	https://en.wikipedia.org/wiki/2016_Puducherry_Legislative_Assembly_election
+Puducherry	state	2021	06-04-2021	06-04-2021	Apr-2021	https://en.wikipedia.org/wiki/2021_Puducherry_Legislative_Assembly_election
+Jammu and Kashmir	state	2014	25-11-2014	20-12-2014	Nov-2014, Dec-2014	https://en.wikipedia.org/wiki/2014_Jammu_and_Kashmir_Legislative_Assembly_election
+Jammu and Kashmir	state	2024	18-09-2024	01-10-2024	Sep-2024, Oct-2024	https://en.wikipedia.org/wiki/2024_Jammu_and_Kashmir_Legislative_Assembly_election"""
+
+# Create DataFrame
+df2 = pd.read_csv(StringIO(data), sep="\t")
+
+# Parse dates (convert to datetime)
+df2['start_date_parsed'] = pd.to_datetime(df2['start_date'], format='%d-%m-%Y', errors='coerce')
+df2['end_date_parsed'] = pd.to_datetime(df2['end_date'], format='%d-%m-%Y', errors='coerce')
+
+# Add a flag for projected elections
+df2['is_projected'] = df2['year'].apply(lambda x: True if x == 2025 else False)
+
+# Show DataFrame
+print(df2.head())
+print(f"\nTotal elections: {len(df2)}")
+print(f"Projected 2025 elections: {df2['is_projected'].sum()}")
+print(f"\nDate range: {df2['start_date_parsed'].min()} to {df2['end_date_parsed'].max()}")
+
+# Save as CSV
+df2.to_csv("indian_election_dates_2014_2025.csv", index=False)
+print("\nSaved as indian_election_dates_2014_2025.csv")
+```
+
+::: {.output .stream .stdout}
+               region election_type  year  start_date    end_date  \
+    0           India       general  2014  07-04-2014  12-05-2014   
+    1           India       general  2019  11-04-2019  19-05-2019   
+    2           India       general  2024  19-04-2024  01-06-2024   
+    3  Andhra Pradesh         state  2014  30-04-2014  07-05-2014   
+    4  Andhra Pradesh         state  2019  11-04-2019  11-04-2019   
+
+                             months  \
+    0            Apr-2014, May-2014   
+    1            Apr-2019, May-2019   
+    2  Apr-2024, May-2024, Jun-2024   
+    3            Apr-2014, May-2014   
+    4                      Apr-2019   
+
+                                                  source start_date_parsed  \
+    0  https://en.wikipedia.org/wiki/2014_Indian_gene...        2014-04-07   
+    1  https://en.wikipedia.org/wiki/2019_Indian_gene...        2019-04-11   
+    2  https://en.wikipedia.org/wiki/2024_Indian_gene...        2024-04-19   
+    3  https://en.wikipedia.org/wiki/2014_Andhra_Prad...        2014-04-30   
+    4  https://en.wikipedia.org/wiki/2019_Andhra_Prad...        2019-04-11   
+
+      end_date_parsed  is_projected  
+    0      2014-05-12         False  
+    1      2019-05-19         False  
+    2      2024-06-01         False  
+    3      2014-05-07         False  
+    4      2019-04-11         False  
+
+    Total elections: 72
+    Projected 2025 elections: 2
+
+    Date range: 2014-04-07 00:00:00 to 2025-10-31 00:00:00
+
+    Saved as indian_election_dates_2014_2025.csv
+:::
+::::
+
+:::: {#3d788f9d .cell .code execution_count="12"}
+``` python
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+# ============================================================================
+# CHANNEL LIFESPAN ANALYSIS
+# ============================================================================
+
+def analyze_channel_lifespans(df1):
+    """
+    Comprehensive channel lifespan analysis
+    """
+    
+    # Ensure upload_date is datetime
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    
+    # Get current date for "active until" calculation
+    current_date = df1['upload_date'].max()
+    
+    # Group by channel
+    channel_stats = df1.groupby('channel_name').agg({
+        'upload_date': ['min', 'max', 'count'],
+        'video_id': 'count',
+        'ensemble_prediction': lambda x: (x == 0).sum()  # Count Modi images
+    }).reset_index()
+    
+    # Flatten column names
+    channel_stats.columns = ['channel_name', 'first_upload', 'last_upload', 
+                              'date_count', 'total_videos', 'modi_images']
+    
+    # Calculate metrics
+    channel_stats['lifespan_days'] = (channel_stats['last_upload'] - 
+                                       channel_stats['first_upload']).dt.days
+    channel_stats['lifespan_years'] = channel_stats['lifespan_days'] / 365.25
+    channel_stats['lifespan_months'] = channel_stats['lifespan_days'] / 30.44
+    
+    # Modi usage rate
+    channel_stats['modi_rate_%'] = (channel_stats['modi_images'] / 
+                                     channel_stats['total_videos'] * 100).round(2)
+    
+    # Videos per month (activity rate)
+    channel_stats['videos_per_month'] = (
+        channel_stats['total_videos'] / channel_stats['lifespan_months']
+    ).round(2)
+    
+    # Sort by first upload date
+    channel_stats = channel_stats.sort_values('first_upload')
+    
+    return channel_stats
+
+
+def get_active_channels_by_period(df1):
+    """
+    Show which channels were active in each year
+    """
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    df1['year'] = df1['upload_date'].dt.year
+    
+    # Pivot table: years vs channels
+    activity_matrix = df1.groupby(['year', 'channel_name']).size().unstack(fill_value=0)
+    activity_matrix = (activity_matrix > 0).astype(int)  # Convert to binary
+    
+    return activity_matrix
+
+
+def get_channel_counts_by_year(df1):
+    """
+    Count how many channels were active each year
+    """
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    df1['year'] = df1['upload_date'].dt.year
+    
+    yearly_channels = df1.groupby('year')['channel_name'].nunique().reset_index()
+    yearly_channels.columns = ['year', 'active_channels']
+    
+    return yearly_channels
+
+
+# ============================================================================
+# RUN ANALYSIS
+# ============================================================================
+
+print("="*80)
+print("CHANNEL LIFESPAN ANALYSIS")
+print("="*80)
+
+# Main statistics
+channel_stats = analyze_channel_lifespans(df1)
+
+print("\n📊 CHANNEL STATISTICS (Sorted by Start Date)")
+print("-"*80)
+print(channel_stats.to_string(index=False))
+
+print("\n" + "="*80)
+print("KEY INSIGHTS")
+print("="*80)
+
+# Identify channel age groups
+print("\n🕐 CHANNEL AGE GROUPS:")
+for idx, row in channel_stats.iterrows():
+    years = row['lifespan_years']
+    if years >= 8:
+        age_group = "🟢 VETERAN (8+ years)"
+    elif years >= 5:
+        age_group = "🟡 ESTABLISHED (5-8 years)"
+    elif years >= 2:
+        age_group = "🟠 GROWING (2-5 years)"
+    else:
+        age_group = "🔴 NEW (<2 years)"
+    
+    print(f"{age_group:30} | {row['channel_name']:30} | "
+          f"{row['first_upload'].strftime('%Y-%m-%d')} → "
+          f"{row['last_upload'].strftime('%Y-%m-%d')} "
+          f"({years:.1f} years)")
+
+# Active channels by year
+print("\n" + "="*80)
+print("ACTIVE CHANNELS BY YEAR")
+print("="*80)
+
+yearly_channels = get_channel_counts_by_year(df1)
+print("\n📈 Number of Active Channels Per Year:")
+print(yearly_channels.to_string(index=False))
+
+# Activity matrix
+print("\n" + "="*80)
+print("CHANNEL ACTIVITY MATRIX (1 = Active, 0 = Inactive)")
+print("="*80)
+activity_matrix = get_active_channels_by_period(df1)
+print("\n" + activity_matrix.to_string())
+
+# Survivorship bias check
+print("\n" + "="*80)
+print("⚠️  SURVIVORSHIP BIAS CHECK")
+print("="*80)
+
+total_channels = len(channel_stats)
+min_year = channel_stats['first_upload'].min().year
+max_year = channel_stats['last_upload'].max().year
+
+channels_at_start = (channel_stats['first_upload'].dt.year == min_year).sum()
+channels_at_end = (channel_stats['last_upload'].dt.year == max_year).sum()
+
+print(f"\n📊 Data Coverage: {min_year} - {max_year}")
+print(f"   Total Channels: {total_channels}")
+print(f"   Active in {min_year}: {channels_at_start} channels")
+print(f"   Active in {max_year}: {channels_at_end} channels")
+print(f"   Growth Factor: {channels_at_end / channels_at_start:.1f}x")
+
+print("\n⚠️  BIAS IMPLICATIONS:")
+if channels_at_end > channels_at_start:
+    print(f"   - Early years ({min_year}-{min_year+2}) have FEWER channels contributing data")
+    print(f"   - Recent years ({max_year-2}-{max_year}) have MORE channels contributing data")
+    print(f"   - Absolute counts will show ARTIFICIAL INCREASE over time")
+    print(f"   - MUST USE NORMALIZED RATES for valid trend analysis")
+
+# Per-channel Modi rate variation
+print("\n" + "="*80)
+print("📸 MODI USAGE RATE BY CHANNEL")
+print("="*80)
+
+modi_summary = channel_stats[['channel_name', 'total_videos', 'modi_images', 
+                                'modi_rate_%']].sort_values('modi_rate_%', ascending=False)
+print("\n" + modi_summary.to_string(index=False))
+
+print(f"\n   Average Modi Rate: {channel_stats['modi_rate_%'].mean():.2f}%")
+print(f"   Std Deviation: {channel_stats['modi_rate_%'].std():.2f}%")
+print(f"   Range: {channel_stats['modi_rate_%'].min():.2f}% - "
+      f"{channel_stats['modi_rate_%'].max():.2f}%")
+
+print("\n" + "="*80)
+print("✅ ANALYSIS COMPLETE")
+print("="*80)
+```
+
+::: {.output .stream .stdout}
+    ================================================================================
+    CHANNEL LIFESPAN ANALYSIS
+    ================================================================================
+
+    📊 CHANNEL STATISTICS (Sorted by Start Date)
+    --------------------------------------------------------------------------------
+     channel_name first_upload last_upload  date_count  total_videos  modi_images  lifespan_days  lifespan_years  lifespan_months  modi_rate_%  videos_per_month
+      MixedVideos   2015-06-22  2025-10-21       56668         55936         4467           3774       10.332649       123.981603         7.99            451.16
+       StudyGlows   2019-01-07  2025-09-29       12824         12652         2461           2457        6.726899        80.716163        19.45            156.75
+     WorldAffairs   2020-10-27  2025-09-28        5200          5131         2007           1797        4.919918        59.034166        39.12             86.92
+    PathfinderIAS   2021-02-18  2025-09-28        9147          9013         3045           1683        4.607803        55.289093        33.78            163.02
+        Career247   2025-01-02  2025-09-28         746           739          339            269        0.736482         8.837057        45.87             83.63
+
+    ================================================================================
+    KEY INSIGHTS
+    ================================================================================
+
+    🕐 CHANNEL AGE GROUPS:
+    🟢 VETERAN (8+ years)           | MixedVideos                    | 2015-06-22 → 2025-10-21 (10.3 years)
+    🟡 ESTABLISHED (5-8 years)      | StudyGlows                     | 2019-01-07 → 2025-09-29 (6.7 years)
+    🟠 GROWING (2-5 years)          | WorldAffairs                   | 2020-10-27 → 2025-09-28 (4.9 years)
+    🟠 GROWING (2-5 years)          | PathfinderIAS                  | 2021-02-18 → 2025-09-28 (4.6 years)
+    🔴 NEW (<2 years)               | Career247                      | 2025-01-02 → 2025-09-28 (0.7 years)
+
+    ================================================================================
+    ACTIVE CHANNELS BY YEAR
+    ================================================================================
+
+    📈 Number of Active Channels Per Year:
+     year  active_channels
+     2015                1
+     2016                1
+     2017                1
+     2018                1
+     2019                2
+     2020                3
+     2021                4
+     2022                4
+     2023                4
+     2024                4
+     2025                5
+
+    ================================================================================
+    CHANNEL ACTIVITY MATRIX (1 = Active, 0 = Inactive)
+    ================================================================================
+
+    channel_name  Career247  MixedVideos  PathfinderIAS  StudyGlows  WorldAffairs
+    year                                                                         
+    2015                  0            1              0           0             0
+    2016                  0            1              0           0             0
+    2017                  0            1              0           0             0
+    2018                  0            1              0           0             0
+    2019                  0            1              0           1             0
+    2020                  0            1              0           1             1
+    2021                  0            1              1           1             1
+    2022                  0            1              1           1             1
+    2023                  0            1              1           1             1
+    2024                  0            1              1           1             1
+    2025                  1            1              1           1             1
+
+    ================================================================================
+    ⚠️  SURVIVORSHIP BIAS CHECK
+    ================================================================================
+
+    📊 Data Coverage: 2015 - 2025
+       Total Channels: 5
+       Active in 2015: 1 channels
+       Active in 2025: 5 channels
+       Growth Factor: 5.0x
+
+    ⚠️  BIAS IMPLICATIONS:
+       - Early years (2015-2017) have FEWER channels contributing data
+       - Recent years (2023-2025) have MORE channels contributing data
+       - Absolute counts will show ARTIFICIAL INCREASE over time
+       - MUST USE NORMALIZED RATES for valid trend analysis
+
+    ================================================================================
+    📸 MODI USAGE RATE BY CHANNEL
+    ================================================================================
+
+     channel_name  total_videos  modi_images  modi_rate_%
+        Career247           739          339        45.87
+     WorldAffairs          5131         2007        39.12
+    PathfinderIAS          9013         3045        33.78
+       StudyGlows         12652         2461        19.45
+      MixedVideos         55936         4467         7.99
+
+       Average Modi Rate: 29.24%
+       Std Deviation: 15.35%
+       Range: 7.99% - 45.87%
+
+    ================================================================================
+    ✅ ANALYSIS COMPLETE
+    ================================================================================
+:::
+::::
+
+:::::: {#1850f26c .cell .code execution_count="13"}
+``` python
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+import seaborn as sns
+
+# Set style
+plt.style.use('default')
+sns.set_palette("husl")
+
+# ============================================================================
+# STEP 1: WITHIN-CHANNEL MODI TRENDS
+# ============================================================================
+
+def calculate_monthly_modi_rate(df1):
+    """
+    Calculate Modi usage rate per channel per month
+    """
+    # Ensure datetime
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    
+    # Create month column
+    df1['month'] = df1['upload_date'].dt.to_period('M')
+    
+    # Group by channel and month
+    monthly_stats = df1.groupby(['channel_name', 'month']).agg({
+        'video_id': 'count',  # Total videos
+        'ensemble_prediction': lambda x: (x == 0).sum()  # Modi images
+    }).reset_index()
+    
+    # Rename columns
+    monthly_stats.columns = ['channel_name', 'month', 'total_videos', 'modi_images']
+    
+    # Calculate Modi rate
+    monthly_stats['modi_rate'] = (monthly_stats['modi_images'] / 
+                                   monthly_stats['total_videos'] * 100)
+    
+    # Convert period back to timestamp for plotting
+    monthly_stats['month_date'] = monthly_stats['month'].dt.to_timestamp()
+    
+    return monthly_stats
+
+
+def plot_channel_trends(monthly_stats, save_path=None):
+    """
+    Create individual trend plots for each channel
+    """
+    channels = monthly_stats['channel_name'].unique()
+    n_channels = len(channels)
+    
+    # Create subplots
+    fig, axes = plt.subplots(n_channels, 1, figsize=(14, 4*n_channels))
+    
+    # Handle single channel case
+    if n_channels == 1:
+        axes = [axes]
+    
+    for idx, channel in enumerate(channels):
+        ax = axes[idx]
+        
+        # Filter data for this channel
+        channel_data = monthly_stats[monthly_stats['channel_name'] == channel].copy()
+        channel_data = channel_data.sort_values('month_date')
+        
+        # Plot Modi rate over time
+        ax.plot(channel_data['month_date'], 
+                channel_data['modi_rate'], 
+                marker='o', 
+                linewidth=2, 
+                markersize=4,
+                alpha=0.7,
+                label='Modi Rate %')
+        
+        # Add trend line
+        x_numeric = np.arange(len(channel_data))
+        z = np.polyfit(x_numeric, channel_data['modi_rate'], 1)
+        p = np.poly1d(z)
+        
+        ax.plot(channel_data['month_date'], 
+                p(x_numeric), 
+                "--", 
+                alpha=0.8, 
+                linewidth=2.5,
+                color='red',
+                label=f'Trend (slope={z[0]:.3f}%/month)')
+        
+        # Calculate correlation with time
+        correlation, p_value = stats.pearsonr(x_numeric, channel_data['modi_rate'])
+        
+        # Formatting
+        ax.set_title(f'{channel} - Modi Thumbnail Usage Over Time\n'
+                    f'Correlation with time: r={correlation:.3f}, p={p_value:.4f}',
+                    fontsize=12, fontweight='bold')
+        ax.set_xlabel('Date', fontsize=10)
+        ax.set_ylabel('Modi Rate (%)', fontsize=10)
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='best')
+        
+        # Add horizontal line at mean
+        mean_rate = channel_data['modi_rate'].mean()
+        ax.axhline(y=mean_rate, color='gray', linestyle=':', alpha=0.5, 
+                   label=f'Mean: {mean_rate:.1f}%')
+        
+        # Rotate x-axis labels
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+    
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"✅ Plot saved to {save_path}")
+    
+    plt.show()
+    
+    return fig
+
+
+def analyze_trend_statistics(monthly_stats):
+    """
+    Statistical summary of trends per channel
+    """
+    channels = monthly_stats['channel_name'].unique()
+    
+    results = []
+    
+    for channel in channels:
+        channel_data = monthly_stats[monthly_stats['channel_name'] == channel].copy()
+        channel_data = channel_data.sort_values('month_date')
+        
+        # Time as numeric
+        x = np.arange(len(channel_data))
+        y = channel_data['modi_rate'].values
+        
+        # Linear regression
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        
+        # Calculate start vs end comparison
+        first_6m = channel_data.head(6)['modi_rate'].mean()
+        last_6m = channel_data.tail(6)['modi_rate'].mean()
+        change = last_6m - first_6m
+        pct_change = (change / first_6m * 100) if first_6m > 0 else 0
+        
+        results.append({
+            'Channel': channel,
+            'Start_Date': channel_data['month_date'].min().strftime('%Y-%m'),
+            'End_Date': channel_data['month_date'].max().strftime('%Y-%m'),
+            'Months': len(channel_data),
+            'Avg_Modi_Rate_%': channel_data['modi_rate'].mean(),
+            'First_6M_Avg_%': first_6m,
+            'Last_6M_Avg_%': last_6m,
+            'Change_%_Points': change,
+            'Pct_Change_%': pct_change,
+            'Slope_per_month': slope,
+            'R_squared': r_value**2,
+            'P_value': p_value,
+            'Significant': '✅ YES' if p_value < 0.05 else '❌ NO'
+        })
+    
+    results_df = pd.DataFrame(results)
+    return results_df
+
+
+# ============================================================================
+# RUN ANALYSIS
+# ============================================================================
+
+print("="*80)
+print("STEP 1: WITHIN-CHANNEL MODI USAGE TRENDS")
+print("="*80)
+
+# Calculate monthly rates
+print("\n📊 Calculating monthly Modi rates per channel...")
+monthly_stats = calculate_monthly_modi_rate(df1)
+
+print(f"✅ Calculated {len(monthly_stats)} channel-month observations")
+print(f"   Date range: {monthly_stats['month_date'].min().strftime('%Y-%m')} to "
+      f"{monthly_stats['month_date'].max().strftime('%Y-%m')}")
+
+# Statistical analysis
+print("\n" + "="*80)
+print("📈 TREND STATISTICS BY CHANNEL")
+print("="*80)
+
+trend_stats = analyze_trend_statistics(monthly_stats)
+print("\n" + trend_stats.to_string(index=False))
+
+# Interpretation
+print("\n" + "="*80)
+print("🔍 INTERPRETATION GUIDE")
+print("="*80)
+print("""
+Slope_per_month: How much Modi% increases each month
+  - Positive = Modi usage increasing over time
+  - Negative = Modi usage decreasing over time
+  
+P_value: Statistical significance
+  - < 0.05 = Trend is statistically significant ✅
+  - > 0.05 = Could be random variation ❌
+  
+Pct_Change_%: Percentage change from first 6 months to last 6 months
+  - Shows overall growth/decline
+""")
+
+# Create visualization
+print("\n" + "="*80)
+print("📊 GENERATING PLOTS...")
+print("="*80)
+
+plot_channel_trends(monthly_stats, save_path='channel_modi_trends.png')
+
+print("\n✅ STEP 1 COMPLETE")
+print("="*80)
+```
+
+::: {.output .stream .stdout}
+    ================================================================================
+    STEP 1: WITHIN-CHANNEL MODI USAGE TRENDS
+    ================================================================================
+
+    📊 Calculating monthly Modi rates per channel...
+    ✅ Calculated 331 channel-month observations
+       Date range: 2015-06 to 2025-10
+
+    ================================================================================
+    📈 TREND STATISTICS BY CHANNEL
+    ================================================================================
+
+          Channel Start_Date End_Date  Months  Avg_Modi_Rate_%  First_6M_Avg_%  Last_6M_Avg_%  Change_%_Points  Pct_Change_%  Slope_per_month  R_squared      P_value Significant
+        Career247    2025-01  2025-09       9        46.032963       46.161206      45.142484        -1.018721     -2.206877        -0.132283   0.004494 8.639442e-01        ❌ NO
+      MixedVideos    2015-06  2025-10     125         6.606324        0.000000      16.212253        16.212253      0.000000         0.142386   0.682342 2.032587e-32       ✅ YES
+    PathfinderIAS    2021-02  2025-09      56        33.069326        3.785974      81.461640        77.675666   2051.669273         1.624625   0.794782 3.246581e-20       ✅ YES
+       StudyGlows    2019-01  2025-09      81        16.720011        0.340136      57.080613        56.740477  16681.700220         0.540207   0.645726 1.748839e-19       ✅ YES
+     WorldAffairs    2020-10  2025-09      60        39.340076       24.952659      75.190877        50.238219    201.334130         0.924669   0.769024 4.136907e-20       ✅ YES
+
+    ================================================================================
+    🔍 INTERPRETATION GUIDE
+    ================================================================================
+
+    Slope_per_month: How much Modi% increases each month
+      - Positive = Modi usage increasing over time
+      - Negative = Modi usage decreasing over time
+      
+    P_value: Statistical significance
+      - < 0.05 = Trend is statistically significant ✅
+      - > 0.05 = Could be random variation ❌
+      
+    Pct_Change_%: Percentage change from first 6 months to last 6 months
+      - Shows overall growth/decline
+
+
+    ================================================================================
+    📊 GENERATING PLOTS...
+    ================================================================================
+    ✅ Plot saved to channel_modi_trends.png
+:::
+
+::: {.output .display_data}
+![](aea5282890ee2f6688501e5ad9193acecd7ae9ce.png)
+:::
+
+::: {.output .stream .stdout}
+
+    ✅ STEP 1 COMPLETE
+    ================================================================================
+:::
+::::::
+
+:::::: {#8f19a91b .cell .code execution_count="15"}
+``` python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from datetime import timedelta
+
+# ============================================================================
+# STEP 2: ELECTION IMPACT ANALYSIS (NORMALIZED)
+# ============================================================================
+
+def prepare_election_data(df2, before_days=30, after_days=30):
+    """
+    Prepare election periods with before/after windows
+    """
+    df2 = df2.copy()
+    df2['start_date_parsed'] = pd.to_datetime(df2['start_date_parsed'])
+    df2['end_date_parsed'] = pd.to_datetime(df2['end_date_parsed'])
+    
+    # Create before/after windows
+    df2['before_start'] = df2['start_date_parsed'] - timedelta(days=before_days)
+    df2['after_end'] = df2['end_date_parsed'] + timedelta(days=after_days)
+    
+    return df2
+
+
+def classify_upload_election_status(upload_date, elections_df):
+    """
+    Classify each upload into election period categories
+    Returns: (period_type, election_info)
+    """
+    for _, election in elections_df.iterrows():
+        # Before election
+        if election['before_start'] <= upload_date < election['start_date_parsed']:
+            return 'Before', {
+                'region': election['region'],
+                'type': election['election_type'],
+                'year': election['year'],
+                'period': 'Before'
+            }
+        
+        # During election
+        if election['start_date_parsed'] <= upload_date <= election['end_date_parsed']:
+            return 'During', {
+                'region': election['region'],
+                'type': election['election_type'],
+                'year': election['year'],
+                'period': 'During'
+            }
+        
+        # After election
+        if election['end_date_parsed'] < upload_date <= election['after_end']:
+            return 'After', {
+                'region': election['region'],
+                'type': election['election_type'],
+                'year': election['year'],
+                'period': 'After'
+            }
+    
+    return 'Non-Election', None
+
+
+def add_election_periods(df1, df2):
+    """
+    Add election period classification to video data
+    """
+    df1 = df1.copy()
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    
+    elections_df = prepare_election_data(df2)
+    
+    # Apply classification
+    results = df1['upload_date'].apply(
+        lambda x: classify_upload_election_status(x, elections_df)
+    )
+    
+    df1['election_period'] = results.apply(lambda x: x[0])
+    df1['election_info'] = results.apply(lambda x: x[1])
+    
+    return df1
+
+
+def calculate_detrended_modi_rate(df1):
+    """
+    Remove linear trend to isolate election effects
+    """
+    # Calculate monthly Modi rate per channel (reuse from Step 1)
+    df1['month'] = df1['upload_date'].dt.to_period('M')
+    
+    monthly = df1.groupby(['channel_name', 'month']).agg({
+        'video_id': 'count',
+        'ensemble_prediction': lambda x: (x == 0).sum()
+    }).reset_index()
+    
+    monthly.columns = ['channel_name', 'month', 'total_videos', 'modi_images']
+    monthly['modi_rate'] = monthly['modi_images'] / monthly['total_videos'] * 100
+    monthly['month_date'] = monthly['month'].dt.to_timestamp()
+    
+    # Detrend per channel
+    detrended_data = []
+    
+    for channel in monthly['channel_name'].unique():
+        channel_data = monthly[monthly['channel_name'] == channel].copy()
+        channel_data = channel_data.sort_values('month_date')
+        
+        # Fit linear trend
+        x = np.arange(len(channel_data))
+        y = channel_data['modi_rate'].values
+        
+        slope, intercept = np.polyfit(x, y, 1)
+        trend = slope * x + intercept
+        
+        # Remove trend
+        channel_data['detrended_modi_rate'] = y - trend
+        channel_data['trend_line'] = trend
+        
+        detrended_data.append(channel_data)
+    
+    detrended_df = pd.concat(detrended_data, ignore_index=True)
+    
+    return detrended_df
+
+
+def analyze_election_impact_per_channel(df1_with_periods):
+    """
+    Compare Modi rates across election periods, per channel
+    """
+    # Calculate Modi rate by channel and election period
+    results = df1_with_periods.groupby(['channel_name', 'election_period']).agg({
+        'video_id': 'count',
+        'ensemble_prediction': lambda x: (x == 0).sum()
+    }).reset_index()
+    
+    results.columns = ['channel_name', 'election_period', 'total_videos', 'modi_images']
+    results['modi_rate_%'] = (results['modi_images'] / results['total_videos'] * 100).round(2)
+    
+    # Pivot for easier comparison
+    pivot = results.pivot(index='channel_name', 
+                          columns='election_period', 
+                          values='modi_rate_%').reset_index()
+    
+    # Calculate differences
+    if 'Before' in pivot.columns and 'During' in pivot.columns:
+        pivot['During_vs_Before'] = (pivot['During'] - pivot['Before']).round(2)
+    if 'During' in pivot.columns and 'After' in pivot.columns:
+        pivot['During_vs_After'] = (pivot['During'] - pivot['After']).round(2)
+    if 'During' in pivot.columns and 'Non-Election' in pivot.columns:
+        pivot['During_vs_NonElection'] = (pivot['During'] - pivot['Non-Election']).round(2)
+    
+    return results, pivot
+
+
+def test_election_significance(df1_with_periods):
+    """
+    Statistical test: Is Modi rate during elections significantly different?
+    """
+    results_list = []
+    
+    for channel in df1_with_periods['channel_name'].unique():
+        channel_data = df1_with_periods[df1_with_periods['channel_name'] == channel]
+        
+        # Get Modi rates for each period
+        during = channel_data[channel_data['election_period'] == 'During']
+        non_election = channel_data[channel_data['election_period'] == 'Non-Election']
+        
+        if len(during) > 0 and len(non_election) > 0:
+            # Calculate rates
+            during_rate = (during['ensemble_prediction'] == 0).sum() / len(during) * 100
+            non_rate = (non_election['ensemble_prediction'] == 0).sum() / len(non_election) * 100
+            
+            # Chi-square test
+            during_modi = (during['ensemble_prediction'] == 0).sum()
+            during_total = len(during)
+            non_modi = (non_election['ensemble_prediction'] == 0).sum()
+            non_total = len(non_election)
+            
+            contingency = np.array([
+                [during_modi, during_total - during_modi],
+                [non_modi, non_total - non_modi]
+            ])
+            
+            chi2, p_value = stats.chi2_contingency(contingency)[:2]
+            
+            results_list.append({
+                'Channel': channel,
+                'During_Modi_%': round(during_rate, 2),
+                'Non-Election_Modi_%': round(non_rate, 2),
+                'Difference_%_Points': round(during_rate - non_rate, 2),
+                'Chi2_Statistic': round(chi2, 2),
+                'P_value': round(p_value, 4),
+                'Significant': '✅ YES' if p_value < 0.05 else '❌ NO'
+            })
+    
+    return pd.DataFrame(results_list)
+
+
+def plot_election_impact(results_df):
+    """
+    Visualize election impact per channel
+    """
+    # Pivot data for plotting
+    plot_data = results_df.pivot(index='channel_name', 
+                                   columns='election_period', 
+                                   values='modi_rate_%')
+    
+    # Reorder columns
+    period_order = ['Before', 'During', 'After', 'Non-Election']
+    plot_data = plot_data[[col for col in period_order if col in plot_data.columns]]
+    
+    # Create plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    x = np.arange(len(plot_data))
+    width = 0.2
+    
+    colors = {
+        'Before': '#ff7f0e',
+        'During': '#d62728', 
+        'After': '#ff7f0e',
+        'Non-Election': '#7f7f7f'
+    }
+    
+    for i, period in enumerate(plot_data.columns):
+        offset = width * (i - len(plot_data.columns)/2 + 0.5)
+        ax.bar(x + offset, plot_data[period], width, 
+               label=period, color=colors.get(period, 'blue'), alpha=0.8)
+    
+    ax.set_xlabel('Channel', fontweight='bold', fontsize=11)
+    ax.set_ylabel('Modi Rate (%)', fontweight='bold', fontsize=11)
+    ax.set_title('Modi Thumbnail Usage: Election Periods vs Non-Election\n(Per Channel)', 
+                 fontweight='bold', fontsize=13)
+    ax.set_xticks(x)
+    ax.set_xticklabels(plot_data.index, rotation=45, ha='right')
+    ax.legend(title='Period', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig('election_impact_per_channel.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+# ============================================================================
+# RUN STEP 2 ANALYSIS
+# ============================================================================
+
+print("="*80)
+print("STEP 2: ELECTION IMPACT ANALYSIS (NORMALIZED)")
+print("="*80)
+
+# Add election classifications
+print("\n📅 Classifying videos by election periods...")
+df1_classified = add_election_periods(df1, df2)
+
+period_counts = df1_classified['election_period'].value_counts()
+print(f"\n✅ Classification complete:")
+print(period_counts)
+
+# Analyze per channel
+print("\n" + "="*80)
+print("📊 MODI RATE BY ELECTION PERIOD (PER CHANNEL)")
+print("="*80)
+
+results_df, pivot_df = analyze_election_impact_per_channel(df1_classified)
+
+print("\n" + pivot_df.to_string(index=False))
+
+# Statistical significance test
+print("\n" + "="*80)
+print("📈 STATISTICAL SIGNIFICANCE TEST")
+print("="*80)
+print("\nQuestion: Is Modi rate during elections significantly higher than non-election periods?")
+print("-"*80)
+
+significance_df = test_election_significance(df1_classified)
+print("\n" + significance_df.to_string(index=False))
+
+# Visualization
+print("\n" + "="*80)
+print("📊 GENERATING VISUALIZATION...")
+print("="*80)
+
+plot_election_impact(results_df)
+
+print("\n✅ STEP 2 COMPLETE")
+print("="*80)
+print("\n🔍 KEY QUESTIONS TO ANSWER:")
+print("   1. Is 'During' consistently higher than 'Non-Election'?")
+print("   2. Which channels show strongest election effect?")
+print("   3. Are the differences statistically significant (p < 0.05)?")
+print("="*80)
+```
+
+::: {.output .stream .stdout}
+    ================================================================================
+    STEP 2: ELECTION IMPACT ANALYSIS (NORMALIZED)
+    ================================================================================
+
+    📅 Classifying videos by election periods...
+
+    ✅ Classification complete:
+    election_period
+    Non-Election    47158
+    After           16652
+    Before          15448
+    During           5327
+    Name: count, dtype: int64
+
+    ================================================================================
+    📊 MODI RATE BY ELECTION PERIOD (PER CHANNEL)
+    ================================================================================
+
+     channel_name  After  Before  During  Non-Election  During_vs_Before  During_vs_After  During_vs_NonElection
+        Career247  55.84   43.62   33.33         45.10            -10.29           -22.51                 -11.77
+      MixedVideos   7.44    8.39    7.89          8.06             -0.50             0.45                  -0.17
+    PathfinderIAS  31.24   33.13   44.70         34.04             11.57            13.46                  10.66
+       StudyGlows  19.04   19.12   21.91         19.45              2.79             2.87                   2.46
+     WorldAffairs  36.34   40.36   46.15         38.91              5.79             9.81                   7.24
+
+    ================================================================================
+    📈 STATISTICAL SIGNIFICANCE TEST
+    ================================================================================
+
+    Question: Is Modi rate during elections significantly higher than non-election periods?
+    --------------------------------------------------------------------------------
+
+          Channel  During_Modi_%  Non-Election_Modi_%  Difference_%_Points  Chi2_Statistic  P_value Significant
+        Career247          33.33                44.66               -11.33            0.00   1.0000        ❌ NO
+    PathfinderIAS          44.20                33.53                10.67           20.32   0.0000       ✅ YES
+       StudyGlows          21.59                19.18                 2.41            2.20   0.1379        ❌ NO
+      MixedVideos           7.78                 7.96                -0.18            0.13   0.7189        ❌ NO
+     WorldAffairs          45.70                38.43                 7.27            5.78   0.0162       ✅ YES
+
+    ================================================================================
+    📊 GENERATING VISUALIZATION...
+    ================================================================================
+:::
+
+::: {.output .display_data}
+![](377e2fd3d910f5d6a470c793e47840c7c94d4ade.png)
+:::
+
+::: {.output .stream .stdout}
+
+    ✅ STEP 2 COMPLETE
+    ================================================================================
+
+    🔍 KEY QUESTIONS TO ANSWER:
+       1. Is 'During' consistently higher than 'Non-Election'?
+       2. Which channels show strongest election effect?
+       3. Are the differences statistically significant (p < 0.05)?
+    ================================================================================
+:::
+::::::
+
+:::: {#cd0a117b .cell .code execution_count="18"}
+``` python
+print('hi')
+```
+
+::: {.output .stream .stdout}
+    hi
+:::
+::::
+
+::::::: {#edc45c11 .cell .code execution_count="20"}
+``` python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from datetime import datetime
+
+# ============================================================================
+# PERFORMANCE ANALYSIS: DO MODI THUMBNAILS GET MORE VIEWS? (FIXED)
+# ============================================================================
+
+def prepare_performance_data(df1):
+    """
+    Prepare data with age-adjusted metrics (FIXED)
+    """
+    df1 = df1.copy()
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    
+    # Calculate video age in days
+    current_date = df1['upload_date'].max()
+    df1['video_age_days'] = (current_date - df1['upload_date']).dt.days
+    
+    # Avoid division by zero
+    df1['video_age_days'] = df1['video_age_days'].replace(0, 1)
+    
+    # Label Modi vs Non-Modi
+    df1['thumbnail_type'] = df1['ensemble_prediction'].map({
+        0: 'Modi',
+        1: 'Non-Modi'
+    })
+    
+    # Calculate engagement rate (FIXED - proper zero handling)
+    df1['engagement_rate_%'] = np.where(
+        df1['view_count'] > 0,
+        (df1['like_count'] / df1['view_count'] * 100),
+        0
+    )
+    
+    df1['comment_rate_%'] = np.where(
+        df1['view_count'] > 0,
+        (df1['comment_count'] / df1['view_count'] * 100),
+        0
+    )
+    
+    # Views per day (age-adjusted)
+    df1['views_per_day'] = df1['view_count'] / df1['video_age_days']
+    
+    return df1
+
+
+def analyze_overall_performance(df1_perf):
+    """
+    Overall comparison: Modi vs Non-Modi
+    """
+    summary = df1_perf.groupby('thumbnail_type').agg({
+        'view_count': ['mean', 'median', 'std'],
+        'like_count': ['mean', 'median'],
+        'comment_count': ['mean', 'median'],
+        'engagement_rate_%': ['mean', 'median'],
+        'views_per_day': ['mean', 'median'],
+        'video_id': 'count'
+    }).round(2)
+    
+    summary.columns = ['_'.join(col).strip() for col in summary.columns.values]
+    summary = summary.reset_index()
+    
+    return summary
+
+
+def analyze_performance_by_channel(df1_perf):
+    """
+    Per-channel comparison
+    """
+    channel_stats = df1_perf.groupby(['channel_name', 'thumbnail_type']).agg({
+        'view_count': 'mean',
+        'like_count': 'mean',
+        'engagement_rate_%': 'mean',
+        'views_per_day': 'mean',
+        'video_id': 'count'
+    }).round(2).reset_index()
+    
+    channel_stats.columns = ['channel_name', 'thumbnail_type', 'avg_views', 
+                              'avg_likes', 'engagement_rate_%', 'views_per_day', 'video_count']
+    
+    # Pivot for comparison
+    pivot = channel_stats.pivot(index='channel_name', 
+                                 columns='thumbnail_type', 
+                                 values=['avg_views', 'engagement_rate_%', 'views_per_day'])
+    
+    # Calculate differences (with proper column access)
+    result_df = pd.DataFrame(index=pivot.index)
+    
+    # Copy existing values
+    if 'avg_views' in pivot.columns.levels[0]:
+        if 'Modi' in pivot['avg_views'].columns:
+            result_df['Modi_Avg_Views'] = pivot[('avg_views', 'Modi')]
+        if 'Non-Modi' in pivot['avg_views'].columns:
+            result_df['NonModi_Avg_Views'] = pivot[('avg_views', 'Non-Modi')]
+        
+        # Calculate difference
+        if 'Modi' in pivot['avg_views'].columns and 'Non-Modi' in pivot['avg_views'].columns:
+            result_df['Views_Diff_%'] = ((pivot[('avg_views', 'Modi')] / pivot[('avg_views', 'Non-Modi')] - 1) * 100).round(2)
+    
+    if 'engagement_rate_%' in pivot.columns.levels[0]:
+        if 'Modi' in pivot['engagement_rate_%'].columns:
+            result_df['Modi_Engagement_%'] = pivot[('engagement_rate_%', 'Modi')]
+        if 'Non-Modi' in pivot['engagement_rate_%'].columns:
+            result_df['NonModi_Engagement_%'] = pivot[('engagement_rate_%', 'Non-Modi')]
+        
+        # Calculate difference
+        if 'Modi' in pivot['engagement_rate_%'].columns and 'Non-Modi' in pivot['engagement_rate_%'].columns:
+            result_df['Engagement_Diff'] = (pivot[('engagement_rate_%', 'Modi')] - pivot[('engagement_rate_%', 'Non-Modi')]).round(2)
+    
+    return channel_stats, result_df
+
+
+def test_performance_significance(df1_perf):
+    """
+    Statistical tests: Are Modi thumbnails significantly better?
+    """
+    results_list = []
+    
+    # Overall test
+    modi_videos = df1_perf[df1_perf['thumbnail_type'] == 'Modi']
+    non_modi_videos = df1_perf[df1_perf['thumbnail_type'] == 'Non-Modi']
+    
+    # T-test for views
+    t_stat_views, p_views = stats.ttest_ind(modi_videos['view_count'], 
+                                             non_modi_videos['view_count'], 
+                                             equal_var=False)
+    
+    # T-test for engagement
+    t_stat_eng, p_eng = stats.ttest_ind(modi_videos['engagement_rate_%'], 
+                                         non_modi_videos['engagement_rate_%'], 
+                                         equal_var=False)
+    
+    # Calculate means safely
+    modi_mean_views = modi_videos['view_count'].mean()
+    non_modi_mean_views = non_modi_videos['view_count'].mean()
+    
+    results_list.append({
+        'Comparison': 'OVERALL',
+        'Modi_Avg_Views': int(modi_mean_views),
+        'NonModi_Avg_Views': int(non_modi_mean_views),
+        'Views_Difference_%': round((modi_mean_views / non_modi_mean_views - 1) * 100, 2) if non_modi_mean_views > 0 else 0,
+        'P_value_Views': round(p_views, 4),
+        'Views_Significant': '✅ YES' if p_views < 0.05 else '❌ NO',
+        'Modi_Engagement_%': round(modi_videos['engagement_rate_%'].mean(), 2),
+        'NonModi_Engagement_%': round(non_modi_videos['engagement_rate_%'].mean(), 2),
+        'P_value_Engagement': round(p_eng, 4),
+        'Engagement_Significant': '✅ YES' if p_eng < 0.05 else '❌ NO',
+        'Modi_n': len(modi_videos),
+        'NonModi_n': len(non_modi_videos)
+    })
+    
+    # Per-channel tests
+    for channel in df1_perf['channel_name'].unique():
+        channel_data = df1_perf[df1_perf['channel_name'] == channel]
+        
+        modi = channel_data[channel_data['thumbnail_type'] == 'Modi']
+        non_modi = channel_data[channel_data['thumbnail_type'] == 'Non-Modi']
+        
+        if len(modi) > 30 and len(non_modi) > 30:
+            t_v, p_v = stats.ttest_ind(modi['view_count'], non_modi['view_count'], equal_var=False)
+            t_e, p_e = stats.ttest_ind(modi['engagement_rate_%'], non_modi['engagement_rate_%'], equal_var=False)
+            
+            modi_mean = modi['view_count'].mean()
+            non_modi_mean = non_modi['view_count'].mean()
+            
+            results_list.append({
+                'Comparison': channel,
+                'Modi_Avg_Views': int(modi_mean),
+                'NonModi_Avg_Views': int(non_modi_mean),
+                'Views_Difference_%': round((modi_mean / non_modi_mean - 1) * 100, 2) if non_modi_mean > 0 else 0,
+                'P_value_Views': round(p_v, 4),
+                'Views_Significant': '✅ YES' if p_v < 0.05 else '❌ NO',
+                'Modi_Engagement_%': round(modi['engagement_rate_%'].mean(), 2),
+                'NonModi_Engagement_%': round(non_modi['engagement_rate_%'].mean(), 2),
+                'P_value_Engagement': round(p_e, 4),
+                'Engagement_Significant': '✅ YES' if p_e < 0.05 else '❌ NO',
+                'Modi_n': len(modi),
+                'NonModi_n': len(non_modi)
+            })
+    
+    return pd.DataFrame(results_list)
+
+
+def plot_performance_comparison(df1_perf):
+    """
+    Visualize Modi vs Non-Modi performance
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Plot 1: Average Views by Channel
+    channel_views = df1_perf.groupby(['channel_name', 'thumbnail_type'])['view_count'].mean().reset_index()
+    channel_pivot = channel_views.pivot(index='channel_name', columns='thumbnail_type', values='view_count')
+    
+    # Ensure both columns exist
+    if 'Modi' not in channel_pivot.columns:
+        channel_pivot['Modi'] = 0
+    if 'Non-Modi' not in channel_pivot.columns:
+        channel_pivot['Non-Modi'] = 0
+    
+    x = np.arange(len(channel_pivot))
+    width = 0.35
+    
+    bars1 = axes[0].bar(x - width/2, channel_pivot['Modi'], width, label='Modi', color='#d62728', alpha=0.8)
+    bars2 = axes[0].bar(x + width/2, channel_pivot['Non-Modi'], width, label='Non-Modi', color='#7f7f7f', alpha=0.8)
+    
+    axes[0].set_xlabel('Channel', fontweight='bold', fontsize=11)
+    axes[0].set_ylabel('Average Views', fontweight='bold', fontsize=11)
+    axes[0].set_title('Average Views: Modi vs Non-Modi Thumbnails\n(Per Channel)', fontweight='bold', fontsize=13)
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(channel_pivot.index, rotation=45, ha='right')
+    axes[0].legend()
+    axes[0].grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bars in [bars1, bars2]:
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                axes[0].text(bar.get_x() + bar.get_width()/2., height,
+                            f'{int(height):,}',
+                            ha='center', va='bottom', fontsize=8)
+    
+    # Plot 2: Engagement Rate by Channel
+    channel_eng = df1_perf.groupby(['channel_name', 'thumbnail_type'])['engagement_rate_%'].mean().reset_index()
+    eng_pivot = channel_eng.pivot(index='channel_name', columns='thumbnail_type', values='engagement_rate_%')
+    
+    # Ensure both columns exist
+    if 'Modi' not in eng_pivot.columns:
+        eng_pivot['Modi'] = 0
+    if 'Non-Modi' not in eng_pivot.columns:
+        eng_pivot['Non-Modi'] = 0
+    
+    bars3 = axes[1].bar(x - width/2, eng_pivot['Modi'], width, label='Modi', color='#d62728', alpha=0.8)
+    bars4 = axes[1].bar(x + width/2, eng_pivot['Non-Modi'], width, label='Non-Modi', color='#7f7f7f', alpha=0.8)
+    
+    axes[1].set_xlabel('Channel', fontweight='bold', fontsize=11)
+    axes[1].set_ylabel('Engagement Rate (%)', fontweight='bold', fontsize=11)
+    axes[1].set_title('Engagement Rate: Modi vs Non-Modi Thumbnails\n(Likes/Views %)', fontweight='bold', fontsize=13)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(eng_pivot.index, rotation=45, ha='right')
+    axes[1].legend()
+    axes[1].grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bars in [bars3, bars4]:
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                axes[1].text(bar.get_x() + bar.get_width()/2., height,
+                            f'{height:.2f}%',
+                            ha='center', va='bottom', fontsize=8)
+    
+    plt.tight_layout()
+    plt.savefig('modi_performance_comparison.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+def plot_performance_distribution(df1_perf):
+    """
+    Box plot showing distribution of views
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # Create box plot by channel and thumbnail type
+    df1_perf_plot = df1_perf[['channel_name', 'thumbnail_type', 'view_count']].copy()
+    
+    # Box plot
+    sns.boxplot(data=df1_perf_plot, x='channel_name', y='view_count', hue='thumbnail_type',
+                palette={'Modi': '#d62728', 'Non-Modi': '#7f7f7f'}, ax=ax)
+    
+    ax.set_xlabel('Channel', fontweight='bold', fontsize=11)
+    ax.set_ylabel('View Count (log scale)', fontweight='bold', fontsize=11)
+    ax.set_title('View Count Distribution: Modi vs Non-Modi Thumbnails\n(Box Plot by Channel)', 
+                 fontweight='bold', fontsize=13)
+    ax.set_yscale('log')
+    ax.tick_params(axis='x', rotation=45)
+    ax.legend(title='Thumbnail Type')
+    ax.grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig('modi_performance_distribution.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+# ============================================================================
+# RUN PERFORMANCE ANALYSIS
+# ============================================================================
+
+print("="*80)
+print("PERFORMANCE ANALYSIS: MODI vs NON-MODI THUMBNAILS")
+print("="*80)
+
+# Prepare data
+print("\n📊 Preparing performance metrics...")
+df1_perf = prepare_performance_data(df1)
+
+print(f"✅ Analyzed {len(df1_perf):,} videos")
+print(f"   Modi thumbnails: {(df1_perf['thumbnail_type']=='Modi').sum():,}")
+print(f"   Non-Modi thumbnails: {(df1_perf['thumbnail_type']=='Non-Modi').sum():,}")
+
+# Data quality check
+print("\n" + "="*80)
+print("🔍 DATA QUALITY CHECK")
+print("="*80)
+print(f"Videos with 0 views: {(df1_perf['view_count'] == 0).sum():,}")
+print(f"Videos with NaN views: {df1_perf['view_count'].isna().sum():,}")
+print(f"Date range: {df1_perf['upload_date'].min().strftime('%Y-%m-%d')} to {df1_perf['upload_date'].max().strftime('%Y-%m-%d')}")
+
+# Overall comparison
+print("\n" + "="*80)
+print("📈 OVERALL PERFORMANCE COMPARISON")
+print("="*80)
+
+overall_summary = analyze_overall_performance(df1_perf)
+print("\n" + overall_summary.to_string(index=False))
+
+# Per-channel analysis
+print("\n" + "="*80)
+print("📊 PER-CHANNEL PERFORMANCE COMPARISON")
+print("="*80)
+
+channel_stats, pivot_stats = analyze_performance_by_channel(df1_perf)
+print("\nDetailed Stats:")
+print(channel_stats.to_string(index=False))
+print("\nComparison Summary:")
+print(pivot_stats.to_string())
+
+# Statistical significance
+print("\n" + "="*80)
+print("📈 STATISTICAL SIGNIFICANCE TEST")
+print("="*80)
+print("\nQuestion: Do Modi thumbnails get significantly more views/engagement?")
+print("-"*80)
+
+significance = test_performance_significance(df1_perf)
+print("\n" + significance.to_string(index=False))
+
+# Visualizations
+print("\n" + "="*80)
+print("📊 GENERATING VISUALIZATIONS...")
+print("="*80)
+
+plot_performance_comparison(df1_perf)
+plot_performance_distribution(df1_perf)
+
+print("\n✅ PERFORMANCE ANALYSIS COMPLETE")
+print("="*80)
+print("\n🔍 KEY FINDINGS TO CHECK:")
+print("   1. Do Modi thumbnails have higher average views?")
+print("   2. Is the difference statistically significant (p < 0.05)?")
+print("   3. Which channels benefit most from Modi thumbnails?")
+print("   4. Is engagement rate also higher for Modi thumbnails?")
+print("="*80)
+```
+
+::: {.output .stream .stdout}
+    ================================================================================
+    PERFORMANCE ANALYSIS: MODI vs NON-MODI THUMBNAILS
+    ================================================================================
+
+    📊 Preparing performance metrics...
+    ✅ Analyzed 84,585 videos
+       Modi thumbnails: 12,319
+       Non-Modi thumbnails: 72,266
+
+    ================================================================================
+    🔍 DATA QUALITY CHECK
+    ================================================================================
+    Videos with 0 views: 0
+    Videos with NaN views: 0
+    Date range: 2015-06-22 to 2025-10-21
+
+    ================================================================================
+    📈 OVERALL PERFORMANCE COMPARISON
+    ================================================================================
+
+    thumbnail_type  view_count_mean  view_count_median  view_count_std  like_count_mean  like_count_median  comment_count_mean  comment_count_median  engagement_rate_%_mean  engagement_rate_%_median  views_per_day_mean  views_per_day_median  video_id_count
+              Modi        207485.09            71501.0       330963.69          9382.39             2349.0               764.2                 148.0                    3.86                      3.48              799.20                156.24           12152
+          Non-Modi        103071.07            19542.5       327689.33          4420.63              783.5               251.2                  29.0                    4.17                      3.90              242.11                 17.83           71319
+
+    ================================================================================
+    📊 PER-CHANNEL PERFORMANCE COMPARISON
+    ================================================================================
+
+    Detailed Stats:
+     channel_name thumbnail_type  avg_views  avg_likes  engagement_rate_%  views_per_day  video_count
+        Career247           Modi  907626.98   53508.12               5.77        8837.58          336
+        Career247       Non-Modi  719864.27   44148.18               5.27        6415.36          403
+      MixedVideos           Modi  227543.83    8256.37               3.50         732.60         4415
+      MixedVideos       Non-Modi   99435.44    3737.18               3.90         232.18        51521
+    PathfinderIAS           Modi   59829.70    1977.78               3.54         307.23         3002
+    PathfinderIAS       Non-Modi   35200.52    1649.50               4.90          63.46         6011
+       StudyGlows           Modi   67658.83    2149.19               3.82         273.29         2421
+       StudyGlows       Non-Modi   47568.36    1758.92               4.51          82.29        10231
+     WorldAffairs           Modi  440057.39   24539.01               4.84         980.96         1978
+     WorldAffairs       Non-Modi  393728.59   24464.54               5.91         477.73         3153
+
+    Comparison Summary:
+                   Modi_Avg_Views  NonModi_Avg_Views  Views_Diff_%  Modi_Engagement_%  NonModi_Engagement_%  Engagement_Diff
+    channel_name                                                                                                            
+    Career247           907626.98          719864.27         26.08               5.77                  5.27             0.50
+    MixedVideos         227543.83           99435.44        128.84               3.50                  3.90            -0.40
+    PathfinderIAS        59829.70           35200.52         69.97               3.54                  4.90            -1.36
+    StudyGlows           67658.83           47568.36         42.23               3.82                  4.51            -0.69
+    WorldAffairs        440057.39          393728.59         11.77               4.84                  5.91            -1.07
+
+    ================================================================================
+    📈 STATISTICAL SIGNIFICANCE TEST
+    ================================================================================
+
+    Question: Do Modi thumbnails get significantly more views/engagement?
+    --------------------------------------------------------------------------------
+
+       Comparison  Modi_Avg_Views  NonModi_Avg_Views  Views_Difference_%  P_value_Views Views_Significant  Modi_Engagement_%  NonModi_Engagement_%  P_value_Engagement Engagement_Significant  Modi_n  NonModi_n
+          OVERALL          207485             103071              101.30         0.0000             ✅ YES               3.86                  4.17                 0.0                  ✅ YES   12319      72266
+        Career247          907626             719864               26.08         0.0000             ✅ YES               5.77                  5.27                 0.0                  ✅ YES     339        407
+    PathfinderIAS           59829              35200               69.97         0.0000             ✅ YES               3.54                  4.90                 0.0                  ✅ YES    3045       6102
+       StudyGlows           67658              47568               42.23         0.0000             ✅ YES               3.82                  4.51                 0.0                  ✅ YES    2461      10363
+      MixedVideos          227543              99435              128.84         0.0000             ✅ YES               3.50                  3.90                 0.0                  ✅ YES    4467      52201
+     WorldAffairs          440057             393728               11.77         0.0001             ✅ YES               4.84                  5.91                 0.0                  ✅ YES    2007       3193
+
+    ================================================================================
+    📊 GENERATING VISUALIZATIONS...
+    ================================================================================
+:::
+
+::: {.output .display_data}
+![](6cb8c0c9ceb78cee0d33c430203cb4e4b0f23f4d.png)
+:::
+
+::: {.output .display_data}
+![](243051cb646bf971bb0f74e797ab1be24da58dce.png)
+:::
+
+::: {.output .stream .stdout}
+
+    ✅ PERFORMANCE ANALYSIS COMPLETE
+    ================================================================================
+
+    🔍 KEY FINDINGS TO CHECK:
+       1. Do Modi thumbnails have higher average views?
+       2. Is the difference statistically significant (p < 0.05)?
+       3. Which channels benefit most from Modi thumbnails?
+       4. Is engagement rate also higher for Modi thumbnails?
+    ================================================================================
+:::
+:::::::
+
+:::::::: {#684d0dc6 .cell .code execution_count="21"}
+``` python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+
+# ============================================================================
+# VARIANCE DECOMPOSITION: WHY DID MODI USAGE INCREASE?
+# ============================================================================
+
+def prepare_variance_data(df1):
+    """
+    Prepare data for variance decomposition
+    """
+    df1 = df1.copy()
+    df1['upload_date'] = pd.to_datetime(df1['upload_date'])
+    df1['year'] = df1['upload_date'].dt.year
+    df1['quarter'] = df1['upload_date'].dt.to_period('Q')
+    df1['is_modi'] = (df1['ensemble_prediction'] == 0).astype(int)
+    
+    return df1
+
+
+def calculate_shift_share_decomposition(df1, base_year=2019, comparison_year=2024):
+    """
+    Shift-Share Decomposition:
+    Total Change = Composition Effect + Behavioral Effect
+    
+    Composition Effect: Change due to new channels with different Modi rates
+    Behavioral Effect: Change due to existing channels changing behavior
+    """
+    
+    df1 = df1.copy()
+    df1['year'] = df1['upload_date'].dt.year
+    
+    # Filter to comparison years
+    base_data = df1[df1['year'] == base_year].copy()
+    comp_data = df1[df1['year'] == comparison_year].copy()
+    
+    # Calculate Modi rates per channel in each period
+    base_rates = base_data.groupby('channel_name').agg({
+        'is_modi': ['sum', 'count']
+    })
+    base_rates.columns = ['modi_count', 'total_videos']
+    base_rates['modi_rate'] = (base_rates['modi_count'] / base_rates['total_videos'] * 100)
+    base_rates['share'] = base_rates['total_videos'] / base_rates['total_videos'].sum()
+    
+    comp_rates = comp_data.groupby('channel_name').agg({
+        'is_modi': ['sum', 'count']
+    })
+    comp_rates.columns = ['modi_count', 'total_videos']
+    comp_rates['modi_rate'] = (comp_rates['modi_count'] / comp_rates['total_videos'] * 100)
+    comp_rates['share'] = comp_rates['total_videos'] / comp_rates['total_videos'].sum()
+    
+    # Overall Modi rates
+    base_overall = base_data['is_modi'].mean() * 100
+    comp_overall = comp_data['is_modi'].mean() * 100
+    total_change = comp_overall - base_overall
+    
+    # Identify channel groups
+    base_channels = set(base_rates.index)
+    comp_channels = set(comp_rates.index)
+    
+    continuing = base_channels & comp_channels  # Channels in both periods
+    entering = comp_channels - base_channels    # New channels
+    exiting = base_channels - comp_channels     # Channels that left
+    
+    # Calculate components
+    results = {
+        'base_year': base_year,
+        'comparison_year': comparison_year,
+        'base_modi_rate_%': round(base_overall, 2),
+        'comp_modi_rate_%': round(comp_overall, 2),
+        'total_change_%_points': round(total_change, 2),
+        'n_base_channels': len(base_channels),
+        'n_comp_channels': len(comp_channels),
+        'n_continuing': len(continuing),
+        'n_entering': len(entering),
+        'n_exiting': len(exiting)
+    }
+    
+    # Behavioral Effect: Continuing channels changing rates
+    if len(continuing) > 0:
+        behavioral_effect = 0
+        for channel in continuing:
+            base_rate = base_rates.loc[channel, 'modi_rate']
+            comp_rate = comp_rates.loc[channel, 'modi_rate']
+            comp_share = comp_rates.loc[channel, 'share']
+            
+            behavioral_effect += (comp_rate - base_rate) * comp_share
+        
+        results['behavioral_effect_%_points'] = round(behavioral_effect, 2)
+    else:
+        results['behavioral_effect_%_points'] = 0
+    
+    # Composition Effect: Entry/Exit and Share shifts
+    composition_effect = total_change - results['behavioral_effect_%_points']
+    results['composition_effect_%_points'] = round(composition_effect, 2)
+    
+    # Entry effect specifically
+    if len(entering) > 0:
+        entering_contrib = 0
+        for channel in entering:
+            channel_rate = comp_rates.loc[channel, 'modi_rate']
+            channel_share = comp_rates.loc[channel, 'share']
+            entering_contrib += (channel_rate - base_overall) * channel_share
+        
+        results['entry_effect_%_points'] = round(entering_contrib, 2)
+        
+        # Average Modi rate of entering channels
+        entering_rates = comp_rates.loc[list(entering), 'modi_rate']
+        results['avg_entering_modi_rate_%'] = round(entering_rates.mean(), 2)
+    else:
+        results['entry_effect_%_points'] = 0
+        results['avg_entering_modi_rate_%'] = 0
+    
+    # Continuing channels stats
+    if len(continuing) > 0:
+        continuing_base = base_rates.loc[list(continuing), 'modi_rate'].mean()
+        continuing_comp = comp_rates.loc[list(continuing), 'modi_rate'].mean()
+        results['avg_continuing_base_%'] = round(continuing_base, 2)
+        results['avg_continuing_comp_%'] = round(continuing_comp, 2)
+        results['continuing_change_%_points'] = round(continuing_comp - continuing_base, 2)
+    
+    return results, base_rates, comp_rates, continuing, entering, exiting
+
+
+def cohort_analysis(df1):
+    """
+    Analyze Modi usage by channel launch cohort
+    """
+    df1 = df1.copy()
+    
+    # Get first upload date per channel
+    channel_start = df1.groupby('channel_name')['upload_date'].min().reset_index()
+    channel_start.columns = ['channel_name', 'launch_date']
+    channel_start['launch_year'] = channel_start['launch_date'].dt.year
+    
+    # Merge back
+    df1 = df1.merge(channel_start[['channel_name', 'launch_year']], on='channel_name')
+    
+    # Calculate Modi rate by cohort and year
+    cohort_stats = df1.groupby(['launch_year', df1['upload_date'].dt.year]).agg({
+        'is_modi': ['sum', 'count']
+    }).reset_index()
+    
+    cohort_stats.columns = ['launch_year', 'year', 'modi_count', 'total_videos']
+    cohort_stats['modi_rate_%'] = (cohort_stats['modi_count'] / cohort_stats['total_videos'] * 100).round(2)
+    
+    # First year Modi rate for each cohort
+    first_year_rates = df1.groupby(['channel_name', 'launch_year']).agg({
+        'is_modi': lambda x: (x.sum() / len(x) * 100)
+    }).reset_index()
+    first_year_rates.columns = ['channel_name', 'launch_year', 'first_year_modi_rate_%']
+    
+    cohort_summary = first_year_rates.groupby('launch_year').agg({
+        'first_year_modi_rate_%': ['mean', 'std', 'count']
+    }).round(2)
+    cohort_summary.columns = ['avg_first_year_modi_%', 'std_dev', 'n_channels']
+    
+    return cohort_stats, cohort_summary
+
+
+def calculate_variance_components(df1):
+    """
+    Decompose total variance into:
+    - Within-channel variance (temporal changes)
+    - Between-channel variance (structural differences)
+    """
+    df1 = df1.copy()
+    df1['month'] = df1['upload_date'].dt.to_period('M')
+    
+    # Monthly Modi rate per channel
+    monthly = df1.groupby(['channel_name', 'month']).agg({
+        'is_modi': ['sum', 'count']
+    }).reset_index()
+    monthly.columns = ['channel_name', 'month', 'modi_count', 'total_videos']
+    monthly['modi_rate'] = monthly['modi_count'] / monthly['total_videos'] * 100
+    
+    # Overall mean
+    grand_mean = df1['is_modi'].mean() * 100
+    
+    # Channel means
+    channel_means = monthly.groupby('channel_name')['modi_rate'].mean()
+    
+    # Between-channel variance
+    n_channels = len(channel_means)
+    between_var = ((channel_means - grand_mean) ** 2).sum() / n_channels
+    
+    # Within-channel variance
+    within_var_list = []
+    for channel in monthly['channel_name'].unique():
+        channel_data = monthly[monthly['channel_name'] == channel]
+        channel_mean = channel_means[channel]
+        channel_var = ((channel_data['modi_rate'] - channel_mean) ** 2).mean()
+        within_var_list.append(channel_var)
+    
+    within_var = np.mean(within_var_list)
+    
+    # Total variance
+    total_var = between_var + within_var
+    
+    results = {
+        'total_variance': round(total_var, 2),
+        'between_channel_variance': round(between_var, 2),
+        'within_channel_variance': round(within_var, 2),
+        'between_%': round(between_var / total_var * 100, 2),
+        'within_%': round(within_var / total_var * 100, 2)
+    }
+    
+    return results
+
+
+def plot_shift_share_results(shift_share_results):
+    """
+    Visualize shift-share decomposition
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Plot 1: Total Change Breakdown
+    components = {
+        'Behavioral\n(Existing Channels\nChanged Strategy)': shift_share_results['behavioral_effect_%_points'],
+        'Composition\n(New Channels +\nShare Shifts)': shift_share_results['composition_effect_%_points']
+    }
+    
+    colors = ['#2ecc71', '#e74c3c']
+    bars = axes[0].bar(components.keys(), components.values(), color=colors, alpha=0.8, edgecolor='black', linewidth=1.5)
+    
+    # Add total change line
+    total = shift_share_results['total_change_%_points']
+    axes[0].axhline(y=total, color='black', linestyle='--', linewidth=2, label=f'Total Change: {total:.2f}%')
+    
+    axes[0].set_ylabel('Contribution to Modi Rate Increase (%)', fontweight='bold', fontsize=11)
+    axes[0].set_title(f'Modi Usage Increase Decomposition\n{shift_share_results["base_year"]} → {shift_share_results["comparison_year"]}', 
+                     fontweight='bold', fontsize=13)
+    axes[0].legend(loc='upper right')
+    axes[0].grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bar in bars:
+        height = bar.get_height()
+        axes[0].text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.2f}%',
+                    ha='center', va='bottom', fontweight='bold', fontsize=12)
+    
+    # Plot 2: Channel Composition
+    channel_data = {
+        f'Continuing\n({shift_share_results["n_continuing"]})': shift_share_results.get('continuing_change_%_points', 0),
+        f'Entering\n({shift_share_results["n_entering"]})': shift_share_results.get('entry_effect_%_points', 0)
+    }
+    
+    bars2 = axes[1].bar(channel_data.keys(), channel_data.values(), 
+                        color=['#3498db', '#9b59b6'], alpha=0.8, edgecolor='black', linewidth=1.5)
+    
+    axes[1].set_ylabel('Contribution to Change (%)', fontweight='bold', fontsize=11)
+    axes[1].set_title('Contribution by Channel Type', fontweight='bold', fontsize=13)
+    axes[1].grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bar in bars2:
+        height = bar.get_height()
+        axes[1].text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.2f}%',
+                    ha='center', va='bottom', fontweight='bold', fontsize=12)
+    
+    plt.tight_layout()
+    plt.savefig('variance_decomposition_shift_share.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+def plot_cohort_analysis(cohort_summary):
+    """
+    Visualize cohort starting Modi rates
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    cohort_summary = cohort_summary.reset_index()
+    
+    bars = ax.bar(cohort_summary['launch_year'].astype(str), 
+                  cohort_summary['avg_first_year_modi_%'],
+                  color='#e67e22', alpha=0.8, edgecolor='black', linewidth=1.5)
+    
+    # Add error bars if std available
+    if 'std_dev' in cohort_summary.columns:
+        ax.errorbar(cohort_summary['launch_year'].astype(str), 
+                   cohort_summary['avg_first_year_modi_%'],
+                   yerr=cohort_summary['std_dev'],
+                   fmt='none', ecolor='black', capsize=5, alpha=0.6)
+    
+    ax.set_xlabel('Channel Launch Year', fontweight='bold', fontsize=11)
+    ax.set_ylabel('Average Modi Rate in First Year (%)', fontweight='bold', fontsize=11)
+    ax.set_title('Do Newer Channels Start with Higher Modi Usage?\n(First Year Modi Rate by Launch Cohort)', 
+                fontweight='bold', fontsize=13)
+    ax.grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        n = cohort_summary.iloc[i]['n_channels']
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+               f'{height:.1f}%\n(n={int(n)})',
+               ha='center', va='bottom', fontweight='bold', fontsize=10)
+    
+    plt.tight_layout()
+    plt.savefig('variance_decomposition_cohort.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+def plot_variance_components(variance_results):
+    """
+    Pie chart of variance decomposition
+    """
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    sizes = [variance_results['between_%'], variance_results['within_%']]
+    labels = [
+        f"Between Channels\n(Structural Differences)\n{variance_results['between_%']:.1f}%",
+        f"Within Channels\n(Temporal Changes)\n{variance_results['within_%']:.1f}%"
+    ]
+    colors = ['#3498db', '#2ecc71']
+    explode = (0.05, 0.05)
+    
+    wedges, texts, autotexts = ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%',
+                                        startangle=90, explode=explode, textprops={'fontsize': 12, 'fontweight': 'bold'})
+    
+    ax.set_title('Modi Usage Variance Decomposition\n(What drives the variation?)', 
+                fontweight='bold', fontsize=14)
+    
+    plt.tight_layout()
+    plt.savefig('variance_decomposition_components.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+
+# ============================================================================
+# RUN VARIANCE DECOMPOSITION
+# ============================================================================
+
+print("="*80)
+print("VARIANCE DECOMPOSITION: WHY DID MODI USAGE INCREASE?")
+print("="*80)
+
+# Prepare data
+print("\n📊 Preparing data...")
+df1_var = prepare_variance_data(df1)
+
+# Shift-Share Decomposition
+print("\n" + "="*80)
+print("📈 SHIFT-SHARE DECOMPOSITION (2019 vs 2024)")
+print("="*80)
+print("\nQuestion: Is the Modi increase from:")
+print("  A) New channels entering with high Modi rates? (Composition Effect)")
+print("  B) Existing channels changing strategy? (Behavioral Effect)")
+print("-"*80)
+
+shift_share, base_rates, comp_rates, continuing, entering, exiting = calculate_shift_share_decomposition(
+    df1_var, base_year=2019, comparison_year=2024
+)
+
+print("\n📊 RESULTS:")
+print(f"\n  Base Year ({shift_share['base_year']}):")
+print(f"    - Modi Rate: {shift_share['base_modi_rate_%']}%")
+print(f"    - Active Channels: {shift_share['n_base_channels']}")
+
+print(f"\n  Comparison Year ({shift_share['comparison_year']}):")
+print(f"    - Modi Rate: {shift_share['comp_modi_rate_%']}%")
+print(f"    - Active Channels: {shift_share['n_comp_channels']}")
+
+print(f"\n  📈 TOTAL CHANGE: +{shift_share['total_change_%_points']}% points")
+
+print("\n  🔍 DECOMPOSITION:")
+print(f"    ✅ Behavioral Effect:   +{shift_share['behavioral_effect_%_points']}% points ({shift_share['behavioral_effect_%_points']/shift_share['total_change_%_points']*100:.1f}% of total)")
+print(f"       → Existing channels increased Modi usage")
+print(f"\n    ✅ Composition Effect:  +{shift_share['composition_effect_%_points']}% points ({shift_share['composition_effect_%_points']/shift_share['total_change_%_points']*100:.1f}% of total)")
+print(f"       → New channels + market share shifts")
+
+print(f"\n  📌 CHANNEL DYNAMICS:")
+print(f"    - Continuing: {shift_share['n_continuing']} channels")
+print(f"      • {shift_share['base_year']} avg: {shift_share.get('avg_continuing_base_%', 'N/A')}%")
+print(f"      • {shift_share['comparison_year']} avg: {shift_share.get('avg_continuing_comp_%', 'N/A')}%")
+print(f"      • Change: +{shift_share.get('continuing_change_%_points', 'N/A')}% points")
+print(f"\n    - Entering: {shift_share['n_entering']} new channels")
+print(f"      • Avg Modi rate: {shift_share.get('avg_entering_modi_rate_%', 'N/A')}%")
+print(f"      • Contribution: +{shift_share.get('entry_effect_%_points', 'N/A')}% points")
+
+# Cohort Analysis
+print("\n" + "="*80)
+print("👥 COHORT ANALYSIS")
+print("="*80)
+print("\nQuestion: Do newer channels start with higher Modi rates?")
+print("-"*80)
+
+cohort_stats, cohort_summary = cohort_analysis(df1_var)
+
+print("\n📊 First-Year Modi Rate by Launch Cohort:")
+print(cohort_summary.to_string())
+
+# Variance Components
+print("\n" + "="*80)
+print("📊 VARIANCE DECOMPOSITION")
+print("="*80)
+print("\nQuestion: Is variation driven by channel differences or temporal trends?")
+print("-"*80)
+
+variance_comp = calculate_variance_components(df1_var)
+
+print(f"\n📊 RESULTS:")
+print(f"  Total Variance: {variance_comp['total_variance']}")
+print(f"\n  🔍 BREAKDOWN:")
+print(f"    • Between Channels: {variance_comp['between_channel_variance']} ({variance_comp['between_%']}%)")
+print(f"      → Structural differences between channels")
+print(f"\n    • Within Channels:  {variance_comp['within_channel_variance']} ({variance_comp['within_%']}%)")
+print(f"      → Temporal changes over time")
+
+# Visualizations
+print("\n" + "="*80)
+print("📊 GENERATING VISUALIZATIONS...")
+print("="*80)
+
+plot_shift_share_results(shift_share)
+plot_cohort_analysis(cohort_summary)
+plot_variance_components(variance_comp)
+
+print("\n✅ VARIANCE DECOMPOSITION COMPLETE")
+print("="*80)
+print("\n🎯 KEY FINDINGS:")
+print("   1. How much is behavioral (existing channels) vs composition (new channels)?")
+print("   2. Do newer cohorts start with higher Modi adoption?")
+print("   3. Is variance from channel differences or time trends?")
+print("="*80)
+```
+
+::: {.output .stream .stdout}
+    ================================================================================
+    VARIANCE DECOMPOSITION: WHY DID MODI USAGE INCREASE?
+    ================================================================================
+
+    📊 Preparing data...
+
+    ================================================================================
+    📈 SHIFT-SHARE DECOMPOSITION (2019 vs 2024)
+    ================================================================================
+
+    Question: Is the Modi increase from:
+      A) New channels entering with high Modi rates? (Composition Effect)
+      B) Existing channels changing strategy? (Behavioral Effect)
+    --------------------------------------------------------------------------------
+
+    📊 RESULTS:
+
+      Base Year (2019):
+        - Modi Rate: 2.58%
+        - Active Channels: 2
+
+      Comparison Year (2024):
+        - Modi Rate: 27.22%
+        - Active Channels: 4
+
+      📈 TOTAL CHANGE: +24.64% points
+
+      🔍 DECOMPOSITION:
+        ✅ Behavioral Effect:   +12.39% points (50.3% of total)
+           → Existing channels increased Modi usage
+
+        ✅ Composition Effect:  +12.25% points (49.7% of total)
+           → New channels + market share shifts
+
+      📌 CHANNEL DYNAMICS:
+        - Continuing: 2 channels
+          • 2019 avg: 1.89%
+          • 2024 avg: 21.38%
+          • Change: +19.48% points
+
+        - Entering: 2 new channels
+          • Avg Modi rate: 56.01%
+          • Contribution: +12.52% points
+
+    ================================================================================
+    👥 COHORT ANALYSIS
+    ================================================================================
+
+    Question: Do newer channels start with higher Modi rates?
+    --------------------------------------------------------------------------------
+
+    📊 First-Year Modi Rate by Launch Cohort:
+                 avg_first_year_modi_%  std_dev  n_channels
+    launch_year                                            
+    2015                          7.88      NaN           1
+    2019                         19.19      NaN           1
+    2020                         38.60      NaN           1
+    2021                         33.29      NaN           1
+    2025                         45.44      NaN           1
+
+    ================================================================================
+    📊 VARIANCE DECOMPOSITION
+    ================================================================================
+
+    Question: Is variation driven by channel differences or temporal trends?
+    --------------------------------------------------------------------------------
+
+    📊 RESULTS:
+      Total Variance: 681.18
+
+      🔍 BREAKDOWN:
+        • Between Channels: 388.35 (57.01%)
+          → Structural differences between channels
+
+        • Within Channels:  292.83 (42.99%)
+          → Temporal changes over time
+
+    ================================================================================
+    📊 GENERATING VISUALIZATIONS...
+    ================================================================================
+:::
+
+::: {.output .display_data}
+![](df355e306816c1f968199c864432b38546ee7ae2.png)
+:::
+
+::: {.output .display_data}
+![](0a54048a31d86165c61fe86f4030c3d13d50f53d.png)
+:::
+
+::: {.output .display_data}
+![](0e6045a2794e605a62aaa1bbe6c6790f3f0f5d99.png)
+:::
+
+::: {.output .stream .stdout}
+
+    ✅ VARIANCE DECOMPOSITION COMPLETE
+    ================================================================================
+
+    🎯 KEY FINDINGS:
+       1. How much is behavioral (existing channels) vs composition (new channels)?
+       2. Do newer cohorts start with higher Modi adoption?
+       3. Is variance from channel differences or time trends?
+    ================================================================================
+:::
+::::::::
+
+::: {#c8f6b549 .cell .code}
+``` python
+```
+:::
