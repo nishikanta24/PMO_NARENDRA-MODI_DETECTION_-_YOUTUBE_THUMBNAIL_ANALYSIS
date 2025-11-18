@@ -49,10 +49,3 @@ This project investigates the prevalence of Prime Minister Narendra Modi's image
 ---
 
 
-
-
-
-
-
-*Modi thumbnail usage trends across 5 channels (2015-2025)*
-
