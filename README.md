@@ -1,6 +1,6 @@
-# 🎯 Modi Thumbnail Detection: YouTube Content Analysis
+# 🎯 Modi Thumbnail Detection: YouTube Content Analysis-Is this algorithmic optimization or coordinated political influence?
 
-**Analyzing political figure usage in Indian educational YouTube thumbnails using ensemble deep learning-Is this algorithmic optimization or coordinated political influence?**
+**Analyzing political figure usage in Indian educational YouTube thumbnails using ensemble deep learning**
 
 ---
 
