@@ -34,31 +34,7 @@ This project investigates the prevalence of Prime Minister Narendra Modi's image
 ![Modi Thumbnail Trend](https://raw.githubusercontent.com/nishikanta24/PMO_NARENDRA-MODI_DETECTION_-_YOUTUBE_THUMBNAIL_ANALYSIS/main/images/All_Channels_Modi_Trend_Combined.png)
 
 
-## 🤖 Model Performance
-
-We trained an **ensemble of 4 deep learning models** and combined them using a **Random Forest meta-learner** to achieve robust face detection.
-
-### Individual Model Performance
-
-| Model | Test Accuracy | Modi F1-Score | Non-Modi F1-Score | Training Strategy |
-|-------|---------------|---------------|-------------------|-------------------|
-| **EfficientNet-B0** | 72.2% | 74.3% | 71.2% | 3-phase progressive unfreezing |
-| **ResNet-50** | 77.7% | 57.8% | 86.6% | 2-phase (Layer4 + FC head) |
-| **ConvNeXt-T (Phase 2)** | 85.5% | 84.6% | 85.9% | Thumbnail classification |
-| **ConvNeXt-T (Phase 3)** | 85.4% | 78.8% | 88.4% | Refined classification |
-
-### Ensemble Performance (Random Forest)
-
-| Metric | Value |
-|--------|-------|
-| **Overall Accuracy** | **93.0%** |
-| **Modi F1-Score** | **89.0%** |
-| **Non-Modi F1-Score** | **94.5%** |
-| **Precision (Modi)** | 92.1% |
-| **Recall (Modi)** | 86.1% |
-
-**Key Insight:** Stacking improved Modi detection by **+7.5% F1-score** over the best individual model (ConvNeXt Phase 2).
-
+****
 ---
 
 ### Random Forest Ensemble Performance — Graph 1  
@@ -79,6 +55,4 @@ We trained an **ensemble of 4 deep learning models** and combined them using a *
 
 
 *Modi thumbnail usage trends across 5 channels (2015-2025)*
-
----
 
