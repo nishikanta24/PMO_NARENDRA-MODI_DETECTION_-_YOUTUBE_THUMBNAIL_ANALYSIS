@@ -31,8 +31,9 @@ This project investigates the prevalence of Prime Minister Narendra Modi's image
 
 ---
 
-![Modi Usage Over Time](https://raw.githubusercontent.com/<username>/<repo>/main/images/<image-name>.png
-)
+![Modi Thumbnail Trend](https://raw.githubusercontent.com/nishikanta24/PMO_NARENDRA-MODI_DETECTION_-_YOUTUBE_THUMBNAIL_ANALYSIS/main/images/All_Channels_Modi_Trend_Combined.png)
+
+
 *Modi thumbnail usage trends across 5 channels (2015-2025)*
 
 ---
