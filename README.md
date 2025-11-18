@@ -12,3 +12,27 @@ This project investigates the prevalence of Prime Minister Narendra Modi's image
 *Is this algorithmic optimization or coordinated political influence?*
 
 ---
+
+## 🔍 Key Findings
+
+### 📈 Temporal Trends
+- **Modi usage exploded:** 2.58% (2019) → 27.22% (2024) - a **10.5x increase**
+- **4 out of 5 channels** show statistically significant upward trends (p < 0.05)
+- **PathfinderIAS** had the steepest climb: +1.62% per month (r² = 0.79)
+
+### 🗳️ Election Impact
+- **2 of 5 channels** (PathfinderIAS, WorldAffairs) showed significant spikes during election periods
+- PathfinderIAS: +10.7% during elections | WorldAffairs: +7.3% during elections
+
+### 📊 The "Clickbait Paradox"
+- Modi thumbnails get **101% more views** than non-Modi thumbnails
+- BUT they have **7.4% lower engagement rate** (likes/views)
+- **Conclusion:** Modi = algorithmic bait, not audience satisfaction
+
+---
+
+![Modi Usage Over Time](assets/pm_modi_images_in_thumbnail_usage_over_time.png)
+*Modi thumbnail usage trends across 5 channels (2015-2025)*
+
+---
+
